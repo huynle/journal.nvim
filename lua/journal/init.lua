@@ -5,8 +5,12 @@ M.options = {}
 local buf, win, start_win
 
 local defaults = {
+	file_fmt = "%sW%02d-%d.md",
 	date_fmt = "## %a %m/%d/%Y",
 	entry_fmt = "+ %H:%M ",
+	window = {
+		size = 85,
+	},
 }
 
 function M.setup(options)
@@ -38,7 +42,7 @@ function M.previous_entry()
 	local cur_path = vim.api.nvim_buf_get_name(0)
 
 	local _, _, path, week, year = string.find(cur_path, "(.*)W(%d+)%-(%d+).md")
-	local final_path = string.format("%sW%02d-%d.md", path, tonumber(week) - 1, year)
+	local final_path = string.format(M.options.file_fmt, path, tonumber(week) - 1, year)
 
 	M.close()
 	journal:open_journal_file({
@@ -52,7 +56,7 @@ function M.next_entry()
 
 	local cur_path = vim.api.nvim_buf_get_name(0)
 	local _, _, path, week, year = string.find(cur_path, "(.*)W(%d+)%-(%d+).md")
-	local final_path = string.format("%sW%02d-%d.md", path, tonumber(week) + 1, year)
+	local final_path = string.format(M.options.file_fmt, path, tonumber(week) + 1, year)
 	M.close()
 	journal:open_journal_file({
 		filepath = final_path,
@@ -101,36 +105,36 @@ function M.open_in_tab()
 	M.close()
 end
 
-function M.redraw_og()
-	-- First we allow introduce new changes to buffer. We will block that at end.
-	vim.api.nvim_buf_set_option(buf, "modifiable", true)
-
-	local items_count = vim.api.nvim_win_get_height(win) - 1 -- get the window height
-	local list = {}
-
-	-- If you using nightly build you can get oldfiles like this
-	local oldfiles = vim.v.oldfiles
-	-- In stable version works only that
-	local oldfiles = vim.api.nvim_get_vvar("oldfiles")
-
-	-- Now we populate our list with X last items form oldfiles
-	for i = #oldfiles, #oldfiles - items_count, -1 do
-		-- We use build-in vim function fnamemodify to make path relative
-		-- In nightly we can call vim function like that
-		local path = vim.fn.fnamemodify(oldfiles[i], ":.")
-		-- and this is stable version:
-		local path = vim.api.nvim_call_function("fnamemodify", { oldfiles[i], ":." })
-
-		-- We iterate form end to start, so we should insert items
-		-- at the end of results list to preserve order
-		table.insert(list, #list + 1, path)
-	end
-
-	-- We apply results to buffer
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, list)
-	-- And turn off editing
-	vim.api.nvim_buf_set_option(buf, "modifiable", false)
-end
+-- function M.redraw_og()
+-- 	-- First we allow introduce new changes to buffer. We will block that at end.
+-- 	vim.api.nvim_buf_set_option(buf, "modifiable", true)
+--
+-- 	local items_count = vim.api.nvim_win_get_height(win) - 1 -- get the window height
+-- 	local list = {}
+--
+-- 	-- If you using nightly build you can get oldfiles like this
+-- 	local oldfiles = vim.v.oldfiles
+-- 	-- In stable version works only that
+-- 	local oldfiles = vim.api.nvim_get_vvar("oldfiles")
+--
+-- 	-- Now we populate our list with X last items form oldfiles
+-- 	for i = #oldfiles, #oldfiles - items_count, -1 do
+-- 		-- We use build-in vim function fnamemodify to make path relative
+-- 		-- In nightly we can call vim function like that
+-- 		local path = vim.fn.fnamemodify(oldfiles[i], ":.")
+-- 		-- and this is stable version:
+-- 		local path = vim.api.nvim_call_function("fnamemodify", { oldfiles[i], ":." })
+--
+-- 		-- We iterate form end to start, so we should insert items
+-- 		-- at the end of results list to preserve order
+-- 		table.insert(list, #list + 1, path)
+-- 	end
+--
+-- 	-- We apply results to buffer
+-- 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, list)
+-- 	-- And turn off editing
+-- 	vim.api.nvim_buf_set_option(buf, "modifiable", false)
+-- end
 
 function M.redraw(opts)
 	-- opts = opts or {}
@@ -163,50 +167,50 @@ function M.set_mappings(opts)
 	end
 end
 
-function M.create_ephem_win()
-	-- We save handle to window from which we open the navigation
-	start_win = vim.api.nvim_get_current_win()
-
-	-- vim.api.nvim_command('botright 85vnew '..filepath) -- We open a new vertical window at the far right
-	vim.api.nvim_command("botright 85vnew ") -- We open a new vertical window at the far right
-	win = vim.api.nvim_get_current_win() -- We save our navigation window handle...
-	buf = vim.api.nvim_get_current_buf() -- ...and it's buffer handle.
-
-	-- We should name our buffer. All buffers in vim must have unique names.
-	-- The easiest solution will be adding buffer handle to it
-	-- because it is already unique and it's just a number.
-	vim.api.nvim_buf_set_name(buf, "ephem #" .. buf)
-
-	-- Now we set some options for our buffer.
-	-- nofile prevent mark buffer as modified so we never get warnings about not saved changes.
-	-- Also some plugins treat nofile buffers different.
-	-- For example coc.nvim don't triggers aoutcompletation for these.
-	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
-
-	-- We do not need swapfile for this buffer.
-	vim.api.nvim_buf_set_option(buf, "swapfile", false)
-
-	-- And we would rather prefer that this buffer will be destroyed when hide.
-	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
-
-	-- It's not necessary but it is good practice to set custom filetype.
-	-- This allows users to create their own autocommand or colorschemes on filetype.
-	-- and prevent collisions with other plugins.
-	-- vim.api.nvim_buf_set_option(buf, 'filetype', 'journalft')
-
-	-- For better UX we will turn off line wrap and turn on current line highlight.
-	vim.api.nvim_win_set_option(win, "wrap", false)
-	vim.api.nvim_win_set_option(win, "cursorline", true)
-
-	M.set_mappings(opts) -- At end we will set mappings for our navigation.
-end
+-- function M.create_ephem_win()
+-- 	-- We save handle to window from which we open the navigation
+-- 	start_win = vim.api.nvim_get_current_win()
+--
+-- 	-- vim.api.nvim_command('botright 85vnew '..filepath) -- We open a new vertical window at the far right
+-- 	vim.api.nvim_command("botright " .. M.options.window.size .. "vnew ") -- We open a new vertical window at the far right
+-- 	win = vim.api.nvim_get_current_win() -- We save our navigation window handle...
+-- 	buf = vim.api.nvim_get_current_buf() -- ...and it's buffer handle.
+--
+-- 	-- We should name our buffer. All buffers in vim must have unique names.
+-- 	-- The easiest solution will be adding buffer handle to it
+-- 	-- because it is already unique and it's just a number.
+-- 	vim.api.nvim_buf_set_name(buf, "ephem #" .. buf)
+--
+-- 	-- Now we set some options for our buffer.
+-- 	-- nofile prevent mark buffer as modified so we never get warnings about not saved changes.
+-- 	-- Also some plugins treat nofile buffers different.
+-- 	-- For example coc.nvim don't triggers aoutcompletation for these.
+-- 	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+--
+-- 	-- We do not need swapfile for this buffer.
+-- 	vim.api.nvim_buf_set_option(buf, "swapfile", false)
+--
+-- 	-- And we would rather prefer that this buffer will be destroyed when hide.
+-- 	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+--
+-- 	-- It's not necessary but it is good practice to set custom filetype.
+-- 	-- This allows users to create their own autocommand or colorschemes on filetype.
+-- 	-- and prevent collisions with other plugins.
+-- 	-- vim.api.nvim_buf_set_option(buf, 'filetype', 'journalft')
+--
+-- 	-- For better UX we will turn off line wrap and turn on current line highlight.
+-- 	vim.api.nvim_win_set_option(win, "wrap", false)
+-- 	vim.api.nvim_win_set_option(win, "cursorline", true)
+--
+-- 	M.set_mappings(opts) -- At end we will set mappings for our navigation.
+-- end
 
 function M.create_win(filepath, opts)
 	opts = opts or {}
 	-- We save handle to window from which we open the navigation
 	start_win = vim.api.nvim_get_current_win()
 
-	vim.api.nvim_command("botright 85vnew " .. filepath) -- We open a new vertical window at the far right
+	vim.api.nvim_command("botright " .. M.options.window.size .. "vnew " .. filepath) -- We open a new vertical window at the far right
 	win = vim.api.nvim_get_current_win() -- We save our navigation window handle...
 	buf = vim.api.nvim_get_current_buf() -- ...and it's buffer handle.
 
@@ -251,14 +255,14 @@ function M.entry(filepath)
 	return buf, win
 end
 
-function M.ephemeral_entry(draw_fn, opts)
-	if win and vim.api.nvim_win_is_valid(win) then
-		vim.api.nvim_set_current_win(win)
-	else
-		M.create_ephem_win()
-	end
-	draw_fn(opts)
-end
+-- function M.ephemeral_entry(draw_fn, opts)
+-- 	if win and vim.api.nvim_win_is_valid(win) then
+-- 		vim.api.nvim_set_current_win(win)
+-- 	else
+-- 		M.create_ephem_win()
+-- 	end
+-- 	draw_fn(opts)
+-- end
 
 -- return {
 --   entry = entry,
