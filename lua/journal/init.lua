@@ -360,18 +360,20 @@ end
 function M:add_timed_entry(buf, win)
 	M:add_frontmatter(buf)
 
-	local date_str = vim.fn.strftime(M.options.date_fmt)
-	local time_str = vim.fn.strftime(M.options.entry_fmt)
-	has_date = M:check(date_str, buf, false)
+	local entries = M.options.entry_fmt or { "" }
 
-	-- now add the text that we need to at the END of the file
-	if not has_date then
-		vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", date_str, time_str })
-	else
-		vim.api.nvim_buf_set_lines(buf, -1, -1, false, { time_str })
+	for i = 1, #entries - 1 do
+		local item = vim.fn.strftime(entries[i])
+		if not M:check(item, buf, false) then
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", item })
+		end
 	end
+
+	local last_entry = vim.fn.strftime(entries[#entries])
+	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { last_entry })
+
 	-- get the total new line counts
-	line_count = vim.api.nvim_buf_line_count(buf)
+	local line_count = vim.api.nvim_buf_line_count(buf)
 	-- set the cursor in the window
 	vim.api.nvim_win_set_cursor(win, { line_count, 0 })
 	vim.cmd("normal A")
