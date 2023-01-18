@@ -222,7 +222,7 @@ function M.create_win(filepath, opts)
 	-- Now we set some options for our buffer.
 	-- nofile prevent mark buffer as modified so we never get warnings about not saved changes.
 	-- Also some plugins treat nofile buffers different.
-	-- For example coc.nvim don't triggers aoutcompletation for these.
+	-- For example coc.nvim don't trigers aoutcompletation for these.
 	-- vim.api.nvim_buf_set_option(buf, 'buftype', 'nofile')
 
 	-- We do not need swapfile for this buffer.
@@ -239,6 +239,8 @@ function M.create_win(filepath, opts)
 	-- For better UX we will turn off line wrap and turn on current line highlight.
 	vim.api.nvim_win_set_option(win, "wrap", false)
 	vim.api.nvim_win_set_option(win, "cursorline", true)
+	vim.api.nvim_win_set_option(win, "winfixwidth", true) -- lock it in place
+	vim.api.nvim_win_set_option(win, "winfixheight", true) -- lock it
 
 	M.set_mappings() -- At end we will set mappings for our navigation.
 end
