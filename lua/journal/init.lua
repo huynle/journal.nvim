@@ -364,16 +364,12 @@ function M:add_timed_entry(buf, win)
 
 	local entries = M.options.entry_fmt or { "" }
 
-	for i = 1, #entries - 1 do
+	for i = 1, #entries do
 		local item = vim.fn.strftime(entries[i])
 		if not M:check(item, buf, false) then
 			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", item })
 		end
 	end
-
-	local last_entry = vim.fn.strftime(entries[#entries])
-	vim.api.nvim_buf_set_lines(buf, -1, -1, false, { last_entry })
-
 	-- get the total new line counts
 	local line_count = vim.api.nvim_buf_line_count(buf)
 	-- set the cursor in the window
