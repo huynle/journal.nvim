@@ -217,7 +217,7 @@ function M.create_win(filepath, opts)
 	-- We should name our buffer. All buffers in vim must have unique names.
 	-- The easiest solution will be adding buffer handle to it
 	-- because it is already unique and it's just a number.
-	-- vim.api.nvim_buf_set_name(buf, 'journal #' .. buf)
+	vim.api.nvim_buf_set_name(buf, "journal#" .. buf)
 
 	-- Now we set some options for our buffer.
 	-- nofile prevent mark buffer as modified so we never get warnings about not saved changes.
