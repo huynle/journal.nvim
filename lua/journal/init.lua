@@ -224,7 +224,7 @@ function M.create_win(filepath, opts)
 	-- We should name our buffer. All buffers in vim must have unique names.
 	-- The easiest solution will be adding buffer handle to it
 	-- because it is already unique and it's just a number.
-	-- vim.api.nvim_buf_set_name(buf, 'journal #' .. buf)
+	-- vim.api.nvim_buf_set_name(buf, "journal#" .. buf)
 
 	-- Now we set some options for our buffer.
 	-- nofile prevent mark buffer as modified so we never get warnings about not saved changes.
@@ -241,7 +241,8 @@ function M.create_win(filepath, opts)
 	-- It's not necessary but it is good practice to set custom filetype.
 	-- This allows users to create their own autocommand or colorschemes on filetype.
 	-- and prevent collisions with other plugins.
-	-- vim.api.nvim_buf_set_option(buf, 'filetype', 'journalft')
+	vim.api.nvim_buf_set_option(buf, "filetype", "journal")
+	vim.bo[buf].syntax = "markdown"
 
 	-- For better UX we will turn off line wrap and turn on current line highlight.
 	vim.api.nvim_win_set_option(win, "wrap", false)
