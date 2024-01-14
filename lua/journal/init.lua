@@ -15,8 +15,10 @@ local configs = {
 	},
 	journal = {
 		file_fmt = "%sW%02d-%d.md",
-		date_fmt = "## %a %m/%d/%Y",
-		entry_fmt = "+ %H:%M ",
+		-- date_fmt = "## %a %m/%d/%Y",
+		entry_fmt = {
+			"+ %H:%M ",
+		},
 	},
 }
 
@@ -366,12 +368,12 @@ function M:add_timed_entry(buf, win, opts)
 
 	local entries = opts.journal.entry_fmt or { "" }
 
-	for i = 1, #entries do
-		local item = vim.fn.strftime(entries[i])
-		if not M:check(item, buf, false) then
-			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", item })
+	for _, entry in ipairs(entries) do
+		local fmt_entry = vim.fn.strftime(entry)
+		if not M:check(fmt_entry, buf, false) then
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { fmt_entry })
 		else
-			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", item })
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { entry })
 		end
 	end
 	-- get the total new line counts
