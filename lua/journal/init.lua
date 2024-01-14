@@ -4,17 +4,24 @@ local M = {}
 M.options = {}
 local buf, win, start_win
 
-local defaults = {
-	file_fmt = "%sW%02d-%d.md",
-	date_fmt = "## %a %m/%d/%Y",
-	entry_fmt = "+ %H:%M ",
+local configs = {
+	filepath = function()
+		local name = os.date("W%W-%Y")
+		return string.format("%s/journal/%s.md", util.getEnv("ZK_NOTEBOOK_DIR"), name)
+	end,
+	add_entry = false,
 	window = {
 		size = 85,
+	},
+	journal = {
+		file_fmt = "%sW%02d-%d.md",
+		date_fmt = "## %a %m/%d/%Y",
+		entry_fmt = "+ %H:%M ",
 	},
 }
 
 function M.setup(options)
-	M.options = vim.tbl_deep_extend("force", {}, defaults, M.options or {}, options or {})
+	M.options = vim.tbl_deep_extend("force", {}, configs, M.options or {}, options or {})
 end
 
 function M.open()
@@ -42,7 +49,7 @@ function M.previous_entry()
 	local cur_path = vim.api.nvim_buf_get_name(0)
 
 	local _, _, path, week, year = string.find(cur_path, "(.*)W(%d+)%-(%d+).md")
-	local final_path = string.format(M.options.file_fmt, path, tonumber(week) - 1, year)
+	local final_path = string.format(M.options.journal.file_fmt, path, tonumber(week) - 1, year)
 
 	M.close()
 	journal:open_journal_file({
@@ -56,7 +63,7 @@ function M.next_entry()
 
 	local cur_path = vim.api.nvim_buf_get_name(0)
 	local _, _, path, week, year = string.find(cur_path, "(.*)W(%d+)%-(%d+).md")
-	local final_path = string.format(M.options.file_fmt, path, tonumber(week) + 1, year)
+	local final_path = string.format(M.options.journal .. file_fmt, path, tonumber(week) + 1, year)
 	M.close()
 	journal:open_journal_file({
 		filepath = final_path,
@@ -288,13 +295,6 @@ end
 -- - explore this dotfile. looks like he's all in all vimscript - https://github.com/joeytwiddle/dotfiles/tree/master/.vim
 -- some good notes here that breaks down the little things about the language
 -- https://wincent.com/wiki/Lua_development_in_Neovim
-local configs = {
-	filepath = function()
-		local name = os.date("W%W-%Y")
-		return string.format("%s/journal/%s.md", util.getEnv("ZK_NOTEBOOK_DIR"), name)
-	end,
-	add_entry = false,
-}
 
 -- local M = {}
 
@@ -359,14 +359,17 @@ function M:hello()
 	vim.api.nvim_set_current_line(nline)
 end
 
-function M:add_timed_entry(buf, win)
+function M:add_timed_entry(buf, win, opts)
+	opts = vim.tbl_extend("force", M.options, opts)
 	M:add_frontmatter(buf)
 
-	local entries = M.options.entry_fmt or { "" }
+	local entries = opts.journal.entry_fmt or { "" }
 
 	for i = 1, #entries do
 		local item = vim.fn.strftime(entries[i])
 		if not M:check(item, buf, false) then
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", item })
+		else
 			vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", item })
 		end
 	end
@@ -401,7 +404,7 @@ function M:open_journal_file(opts)
 	local buf, win = M.entry(opts.filepath)
 
 	if opts.add_entry then
-		M:add_timed_entry(buf, win)
+		M:add_timed_entry(buf, win, opts)
 	end
 
 	util.augroups({
