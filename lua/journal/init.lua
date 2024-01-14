@@ -243,8 +243,10 @@ function M.create_win(filepath, opts)
 	-- It's not necessary but it is good practice to set custom filetype.
 	-- This allows users to create their own autocommand or colorschemes on filetype.
 	-- and prevent collisions with other plugins.
-	vim.api.nvim_buf_set_option(buf, "filetype", "journal")
-	vim.bo[buf].syntax = "markdown"
+	-- vim.api.nvim_buf_set_option(buf, "filetype", "journal")
+	-- vim.bo[buf].syntax = "markdown"
+	-- vim.bo[buf].journal_nvim = true
+	vim.api.nvim_buf_set_var(0, "journal_nvim", true)
 
 	-- For better UX we will turn off line wrap and turn on current line highlight.
 	vim.api.nvim_win_set_option(win, "wrap", false)
