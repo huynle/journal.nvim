@@ -1,6 +1,7 @@
 local classes = require("journal.common.classes")
 local config = require("journal.config")
 local Split = require("journal.view.split")
+local view_utils = require("journal.view.utils")
 
 local Lookup = classes.class()
 
@@ -13,26 +14,16 @@ function Lookup:load_file(opts)
 	local filepath = opts.filepath
 	filepath = type(filepath) == "function" and filepath() or filepath
 
-	-- -- Read the content of the file into a variable
-	-- local file_content = vim.fn.readfile(filepath)
-	--
-	-- -- Set the content of the buffer
-	-- vim.api.nvim_buf_set_lines(self.view.bufnr, 0, -1, false, file_content)
-	--
-	-- -- Set the filetype to markdown
-	-- vim.api.nvim_buf_set_option(self.view.bufnr, "filetype", "markdown")
-
-	-- -- Set the name to markdown
-	-- vim.api.nvim_buf_set_name(self.view.bufnr, filepath)
-
-	-- -- edit has to be done before keymap
-	-- filepath = type(filepath) == "function" and filepath() or filepath
-
 	vim.cmd("edit " .. filepath)
+	local _bufnr = vim.api.nvim_get_current_buf()
+	self.view.bufnr = _bufnr
 
 	if opts.add_entry then
 		self:add_timed_entry(opts)
 	end
+
+	view_utils.do_keymap(self.view, self.opts)
+	view_utils.set_buf_options(self.view, self.opts)
 end
 
 function Lookup:close()
@@ -42,7 +33,8 @@ end
 function Lookup:open(journal_opts)
 	journal_opts = vim.tbl_extend("force", self.opts.journal, journal_opts)
 	-- self:load_file({ filepath = journal_opts.filepath })
-	self.view:mount(journal_opts.filepath)
+	self.view:mount()
+	self:load_file(journal_opts)
 
 	-- if journal_opts.add_entry then
 	-- 	self:add_timed_entry(journal_opts)
@@ -67,9 +59,9 @@ function Lookup:next_entry()
 	local cur_path = vim.api.nvim_buf_get_name(0)
 	local _, _, path, week, year = string.find(cur_path, "(.*)W(%d+)%-(%d+).md")
 	local final_path = string.format(config.options.journal.file_fmt, path, tonumber(week) + 1, year)
-	local entry = Lookup.new(self.opts)
-	self:close()
-	entry:open({
+	-- local entry = Lookup.new(self.opts)
+	-- self:close()
+	self:load_file({
 		filepath = final_path,
 		add_entry = false,
 	})
@@ -79,9 +71,9 @@ function Lookup:previous_entry()
 	local cur_path = vim.api.nvim_buf_get_name(0)
 	local _, _, path, week, year = string.find(cur_path, "(.*)W(%d+)%-(%d+).md")
 	local final_path = string.format(config.options.journal.file_fmt, path, tonumber(week) - 1, year)
-	local entry = Lookup.new(self.opts)
-	self:close()
-	entry:open({
+	-- local entry = Lookup.new(self.opts)
+	-- self:close()
+	self:load_file({
 		filepath = final_path,
 		add_entry = false,
 	})

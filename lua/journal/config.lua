@@ -53,7 +53,7 @@ local defaults = {
 		entry_fmt = {
 			"+ %H:%M ",
 		},
-		add_entry = false,
+		add_entry = true,
 	},
 	keymaps = {
 		close = "<c-c>",

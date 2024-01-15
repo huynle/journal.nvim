@@ -17,13 +17,6 @@ function SplitWindow:mount(filepath, opts)
 	opts = vim.tbl_extend("force", self.opts, opts)
 
 	SplitWindow.super.mount(self)
-
-	-- edit has to be done before keymap
-	filepath = type(filepath) == "function" and filepath() or filepath
-	vim.cmd("edit " .. filepath)
-
-	view_utils.do_keymap(self, opts)
-	view_utils.set_buf_options(self, opts)
 end
 
 return SplitWindow
