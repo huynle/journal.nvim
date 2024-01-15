@@ -12,4 +12,9 @@ M.open_journal_file = function(opts)
 	lookup:open(opts)
 end
 
+M.open_file = function(file_name)
+	local lookup = Entry.new()
+	lookup:open({ filename = file_name })
+end
+
 return M

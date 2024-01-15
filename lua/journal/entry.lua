@@ -14,12 +14,13 @@ function Lookup:load_file(opts)
 	local filepath = opts.filepath
 	filepath = type(filepath) == "function" and filepath() or filepath
 
+	-- allows us to load any arbitrary file, not just markdown
 	vim.cmd("edit " .. filepath)
 	local _bufnr = vim.api.nvim_get_current_buf()
 	self.view.bufnr = _bufnr
 
 	if opts.add_entry then
-		self:add_timed_entry(opts)
+		self:add_timed_entry(_bufnr, opts)
 	end
 
 	view_utils.do_keymap(self.view, self.opts)
@@ -35,10 +36,6 @@ function Lookup:open(journal_opts)
 	-- self:load_file({ filepath = journal_opts.filepath })
 	self.view:mount()
 	self:load_file(journal_opts)
-
-	-- if journal_opts.add_entry then
-	-- 	self:add_timed_entry(journal_opts)
-	-- end
 
 	-- util.augroups({
 	-- 	journal_autosave = {
@@ -79,21 +76,7 @@ function Lookup:previous_entry()
 	})
 end
 
-function Lookup:load(filepath, opts)
-	filepath = type(filepath) == "function" and filepath() or filepath
-	vim.cmd("edit " .. filepath)
-
-	-- opts = opts or {}
-	-- local lines = {}
-	-- for line in io.lines(filepath) do
-	-- 	table.insert(lines, line)
-	-- end
-	-- vim.api.nvim_buf_set_lines(self.view.bufnr, 0, -1, false, lines)
-	-- -- vim.api.nvim_buf_set_option(self.view.bufnr, "filetype", "journal")
-	-- vim.bo[self.view.bufnr].syntax = "markdown"
-end
-
-function Lookup:add_timed_entry(journal_opts)
+function Lookup:add_timed_entry(bufnr, journal_opts)
 	-- journal_opts = vim.tbl_extend("force",Lookup:options, journal_opts)
 	self:add_frontmatter()
 
@@ -101,14 +84,14 @@ function Lookup:add_timed_entry(journal_opts)
 
 	for _, entry in ipairs(entries) do
 		local fmt_entry = vim.fn.strftime(entry)
-		if not self:check(fmt_entry, false) then
-			vim.api.nvim_buf_set_lines(self.view.bufnr, -1, -1, false, { fmt_entry })
-		else
-			vim.api.nvim_buf_set_lines(self.view.bufnr, -1, -1, false, { entry })
+		if not self:check(bufnr, fmt_entry, false) then
+			vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { fmt_entry })
+			-- else
+			-- 	vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { entry })
 		end
 	end
 	-- get the total new line counts
-	local line_count = vim.api.nvim_buf_line_count(self.view.bufnr)
+	local line_count = vim.api.nvim_buf_line_count(bufnr)
 	-- set the cursor in the window
 	vim.api.nvim_win_set_cursor(self.view.winid, { line_count, 0 })
 	vim.cmd("normal A")
@@ -118,8 +101,8 @@ function Lookup:add_frontmatter()
 	local frontmatter_title_str = vim.api.nvim_eval("strftime('title: W%W-%Y')")
 	local frontmatter_date_str = vim.api.nvim_eval("strftime('date: %m/%d/%Y')")
 
-	local check_date = self:check("date:", self.view.bufnr, true)
-	local check_title = self:check("title:", self.view.bufnr, true)
+	local check_date = self:check(self.view.bufnr, "date:", true)
+	local check_title = self:check(self.view.bufnr, "title:", true)
 
 	if not check_title then
 		vim.api.nvim_buf_set_lines(
@@ -156,12 +139,12 @@ end
 -- 	})
 -- end
 
-function Lookup:check(check_str, substring)
+function Lookup:check(bufnr, check_str, substring)
 	-- grab everything from first line to the last line
 	-- Indexing is zero-based, end-exclusive. Negative indices are
 	-- interpreted as length+1+index: -1 refers to the index past the
 	-- end. So to get the last element use start=-2 and end=-1.
-	local content = vim.api.nvim_buf_get_lines(self.view.bufnr, 0, -1, false)
+	local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 	for _, v in ipairs(content) do
 		if substring then
 			if string.find(v, check_str) then
