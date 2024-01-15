@@ -2,6 +2,7 @@ local classes = require("journal.common.classes")
 local config = require("journal.config")
 local Split = require("journal.view.split")
 local view_utils = require("journal.view.utils")
+local util = require("journal.utils")
 
 local Lookup = classes.class()
 
@@ -37,12 +38,12 @@ function Lookup:open(journal_opts)
 	self.view:mount()
 	self:load_file(journal_opts)
 
-	-- util.augroups({
-	-- 	journal_autosave = {
-	-- 		-- { "CursorHold,CursorHoldI", "<buffer>", "update" }
-	-- 		{ "WinLeave", "<buffer>", "update" },
-	-- 	},
-	-- })
+	util.augroups({
+		journal_autosave = {
+			-- { "CursorHold,CursorHoldI", "<buffer>", "update" }
+			{ "WinLeave", "<buffer>", "update" },
+		},
+	})
 end
 
 function Lookup:get_bufnr()
