@@ -1,10 +1,10 @@
 local config = require("journal.config")
--- local utils = require("journal.utils")
 local Entry = require("journal.entry")
 local M = {}
 
 M.setup = function(options)
 	config.setup(options)
+	require("journal.zk.builtins")
 end
 
 M.open_journal_file = function(opts)

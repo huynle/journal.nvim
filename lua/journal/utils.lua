@@ -1,4 +1,6 @@
+local api = require("zk.api")
 local config = require("journal.config")
+
 local ESC_FEEDKEY = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
 
 local M = {}
@@ -323,6 +325,183 @@ function M.augroups(definitions)
 	for group_name, definition in pairs(definitions) do
 		M.augroup(group_name, definition)
 	end
+end
+
+function M.get_interested_item()
+	local mode = vim.fn.mode()
+	local bufnr, off, len, line, idx
+	local csrow, cscol, cerow, cecol
+
+	if mode == "n" then
+		local cword = vim.fn.expand("<cword>")
+		bufnr, csrow, cscol, off = unpack(vim.fn.getpos("."))
+		len = vim.fn.strchars(cword)
+		line = vim.fn.getline(csrow)
+		idx = vim.fn.stridx(line, cword, 0)
+	elseif mode == "v" or mode == "" then
+		bufnr, csrow, cscol, off = unpack(vim.fn.getpos("."))
+		_, cerow, cecol, _ = unpack(vim.fn.getpos("v"))
+		if cecol < cscol then
+			cscol, cecol = cecol, cscol
+		end
+		if csrow ~= cerow then
+			vim.notify("Cannot link across lines", vim.log.levels.ERROR)
+			return
+		end
+		idx = cscol - 1
+		len = cecol - idx
+		line = vim.fn.getline(csrow)
+		local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+		vim.api.nvim_feedkeys(esc, "x", true)
+	else
+		vim.notify("Cannot link across lines", vim.log.levels.ERROR)
+		return
+	end
+
+	return line, idx, len, csrow, off
+end
+
+function M.SplitThenJoin(val, opts)
+	opts = opts or {}
+	-- split by all spaces and commas
+	local split = opts.split or "[%s%,]+"
+	local join = opts.join or ", "
+	return table.concat(vim.split(val, split), join)
+end
+
+function M.link_selection(entry)
+	local type = "rel"
+	local link = ""
+	local current_path = vim.fn.expand("%:p:h")
+
+	if type == "abs" then
+		link = entry.path
+	elseif type == "rel" then
+		-- resolve any symlink that is goin on
+		local r = Path:new(vim.fn.resolve(current_path))
+		local p = Path:new(vim.fn.resolve(entry.path))
+		link = p:make_relative(r .. r._sep)
+	elseif type == "file" then
+		link = trueFileName(entry.absPath)
+	end
+
+	-- Check if we can write on buffer
+	if vim.api.nvim_buf_get_option(vim.api.nvim_get_current_buf(), "modifiable") then
+		local linkname = vim.fn.input("Link Name: ")
+		if linkname == "" then
+			linkname = entry.title
+		end
+		pasteMdLink(link, linkname)
+	end
+end
+
+function M.pasteMdLink(link, name)
+	vim.api.nvim_paste(" [" .. name .. "]" .. "(" .. link .. ")", true, -1)
+end
+
+function M.trueFileName(file)
+	return file:match("[^/]*.$")
+end
+
+function M.log(msg, hl, name)
+	name = name or "Neovim"
+	hl = hl or "Todo"
+	local debug = vim.env.USER == "huy"
+	if debug then
+		vim.api.nvim_echo({ { name .. ": ", hl }, { msg } }, true, {})
+	end
+end
+
+-- Function to merge two lists and keep unique elements
+function M.merge_unique(list1, list2)
+	local merged = {}
+
+	-- Add elements from list1 to the merged list
+	for _, value in ipairs(list1 or {}) do
+		if not vim.tbl_contains(merged, value) then
+			table.insert(merged, value)
+		end
+	end
+
+	-- Add elements from list2 to the merged list (if not already present)
+	for _, value in ipairs(list2 or {}) do
+		if not vim.tbl_contains(merged, value) then
+			table.insert(merged, value)
+		end
+	end
+
+	return merged
+end
+
+function M.check_buffer(bufnr, check_str, substring)
+	-- grab everything from first line to the last line
+	-- Indexing is zero-based, end-exclusive. Negative indices are
+	-- interpreted as length+1+index: -1 refers to the index past the
+	-- end. So to get the last element use start=-2 and end=-1.
+	local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+	for _, v in ipairs(content) do
+		if substring then
+			if string.find(v, check_str) then
+				return true
+			end
+		else
+			if v == check_str then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function M.get_relative_path(buffername, directory)
+	local current_directory = vim.fn.getcwd()
+	local current_buffername = vim.fn.expand(buffername)
+	-- Convert paths to absolute paths
+	current_directory = vim.fn.resolve(current_directory)
+	directory = vim.fn.resolve(directory)
+	-- Get the relative path using the 'fnamemodify' function
+	local relative_path = vim.fn.fnamemodify(current_buffername, ":~:.")
+	relative_path = vim.fn.fnamemodify(relative_path, ":h")
+	-- Append the relative path to the given directory
+	local final_path = vim.fn.pathshorten(directory .. "/" .. relative_path)
+	return final_path
+end
+
+-- Function to convert text to lowercase and remove hyphens
+function M.slugify_tag_word(input_text)
+	-- Convert to lowercase and remove hyphens
+	local result_text = input_text:lower():gsub("-", "")
+	-- result_text = result_text:lower():gsub(" ", "")
+	return result_text
+end
+
+function M.my_zk(options, cb)
+	local _defaults = {
+		select = { "title", "tags", "absPath" },
+	}
+	options = options or {}
+	options.select = M.merge_unique(_defaults.select, options.select or {})
+
+	-- kick it off, and let it run inthe background
+	vim.schedule(function()
+		api.list(os.getenv("ZK_NOTEBOOK_DIR"), options, function(err, res)
+			if not res then
+				error(err)
+			else
+				cb(res, options)
+			end
+		end)
+	end)
+end
+
+function M.get_note_attr(notes, attr)
+	local ret = {}
+	for _, note in ipairs(notes) do
+		local _attr = note[attr]
+		_attr = vim.tbl_islist(_attr) and _attr or { _attr }
+		ret = M.merge_unique(ret, _attr)
+	end
+	return ret
 end
 
 return M
