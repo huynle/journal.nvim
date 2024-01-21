@@ -67,12 +67,45 @@ function Autoz:run(filepath, opts)
 end
 
 function Autoz:do_keymaps()
-	-- next journal entry
-	self.view:map("n", "<CR>", function()
-		local node = self.tree:get_node()
-		vim.cmd("wincmd L") -- Move to the rightmost window
-		vim.cmd("vsplit " .. node.params.absPath)
-	end)
+	local keymaps = {
+		{
+			mode = { "n" },
+			keys = { "<CR>", "sv" },
+			note = "open note in vertical split",
+			callback = function()
+				local node = self.tree:get_node()
+				vim.cmd("wincmd L") -- Move to the rightmost window
+				vim.cmd("vsplit " .. node.params.absPath)
+			end,
+		},
+		{
+			mode = { "n" },
+			keys = { "sg" },
+			note = "open note in horizontal split",
+			callback = function()
+				local node = self.tree:get_node()
+				vim.cmd("wincmd L") -- Move to the rightmost window
+				vim.cmd("split" .. node.params.absPath)
+			end,
+		},
+		{
+			mode = { "n" },
+			keys = { "st" },
+			note = "open note in tab",
+			callback = function()
+				local node = self.tree:get_node()
+				vim.cmd("wincmd L") -- Move to the rightmost window
+				vim.cmd("tabedit " .. node.params.absPath)
+			end,
+		},
+	}
+
+	for _, keymap in pairs(keymaps) do
+		local _keys = vim.tbl_islist(keymap.keys) and keymap.key or { keymap.key }
+		for _, key in ipairs(_keys) do
+			self.view:map(keymap.mode, key, keymap.callback)
+		end
+	end
 end
 
 function Autoz:get_note(filepath, opts)
