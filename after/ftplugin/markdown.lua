@@ -1,6 +1,6 @@
 -- local util = require("huy.util")
 local util = require("journal.utils")
-local journal_zk = require("journal.zk")
+local journal_zk = require("journal.zk.helpers")
 -- local wk = require("which-key")
 -- local bufnr = vim.api.nvim_get_current_buf()
 -- local log = require("huy.util.log")
@@ -99,8 +99,12 @@ if require("zk.util").notebook_root(vim.fn.expand("%:p")) ~= nil then
 		journal_zk.jump_to_tag_definition_page()
 	end, opts)
 
-	vim.keymap.set("n", "<leader>zz", function()
+	vim.keymap.set("n", "<leader>uz", function()
 		toggle_auto_zk()
+	end, opts)
+
+	vim.keymap.set("n", "<leader>zz", function()
+		vim.cmd("AutoZ")
 	end, opts)
 else
 	util.log("CANNOT load zk for markdown", nil, "ZK")

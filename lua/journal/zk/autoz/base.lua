@@ -17,6 +17,10 @@ function Autoz:init(opts)
 	self.notes = {}
 end
 
+local function get_node_id(node)
+	return node.text
+end
+
 function Autoz:get_view(opts)
 	-- local view = Split(self, self.opts)
 	local view = SimpleView.new(self, opts)
@@ -32,25 +36,30 @@ function Autoz:show_partial(notes)
 			text = note.title,
 			params = note,
 		})
-		self.tree:add_node(_node)
+		if not self.tree:get_node(get_node_id(_node)) then
+			self.tree:add_node(_node)
+		end
 	end
 	self.tree:render()
 end
 
-function Autoz:show(notes)
+function Autoz:prepare_view_bufffer()
 	if not self.view then
 		self.view = self:get_view()
 	end
-	if not self.view.visible then
-		self.view:show()
-	end
-
-	self.tree = self:create_tree(notes)
+	-- get a new tree
+	self.tree = self:get_tree()
 	self:do_keymaps()
+
+	vim.api.nvim_buf_set_option(self.view.bufnr, "readonly", false)
 	vim.api.nvim_buf_set_option(self.view.bufnr, "modifiable", true)
-	vim.api.nvim_buf_set_lines(self.view.bufnr, 0, -1, true, {})
 	vim.api.nvim_buf_set_option(self.view.bufnr, "ft", self.name)
-	self.tree:render()
+	vim.api.nvim_buf_set_lines(self.view.bufnr, 0, -1, true, {})
+end
+
+function Autoz:show(notes)
+	self:prepare_view_bufffer()
+	self:show_partial(notes)
 end
 
 function Autoz:run(filepath, opts)
@@ -92,9 +101,7 @@ function Autoz:get_tree()
 	return NuiTree({
 		bufnr = self.view.bufnr,
 		nodes = {},
-		get_node_id = function(node)
-			return node.text
-		end,
+		get_node_id = get_node_id,
 		prepare_node = function(node)
 			local line = NuiLine()
 			line:append(string.rep(">", node:get_depth() - 1))

@@ -15,13 +15,8 @@ end
 
 function Taglinks:lookup(notes, opts)
 	local tags = utils.get_note_attr(notes, "tags")
+	self:prepare_view_bufffer()
 
-	if not self.view then
-		self.view = self:get_view()
-	end
-	-- get a new tree
-	self.tree = self:get_tree()
-	self:do_keymaps()
 	for _, tag in ipairs(tags) do
 		vim.schedule(function()
 			utils.my_zk({

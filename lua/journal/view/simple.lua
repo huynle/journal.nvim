@@ -63,32 +63,51 @@ function SimpleView:show(opts)
 end
 
 function SimpleView:mount(name)
+	-- Save the handle of the window from which we open the navigation.
+	local start_win = vim.api.nvim_get_current_win()
+
+	-- Get the buffer handle.
+	local buf = vim.fn.bufnr(name)
+
+	-- If the buffer already exists, find the window that displays it and return its handle.
+	if buf ~= -1 then
+		for _, win_id in ipairs(vim.api.nvim_list_wins()) do
+			local bufnr = vim.api.nvim_win_get_buf(win_id)
+			if bufnr == buf then
+				vim.api.nvim_set_current_win(win_id)
+				vim.api.nvim_set_current_win(start_win)
+				self.bufnr = buf
+				self.winid = win_id
+				return buf, win_id
+			end
+		end
+	end
+
 	-- Open a new vertical window at the far right.
 	vim.api.nvim_command("botright " .. "vnew")
 
 	-- Get the buffer and window handles of the new window.
 	self.bufnr = vim.api.nvim_get_current_buf()
 	self.winid = vim.api.nvim_get_current_win()
-	local buf = self.bufnr
 
-	-- -- Set the name of the buffer to the buffer name specified in the options table.
-	-- vim.api.nvim_buf_set_name(buf, name or self.name)
+	-- Set the name of the buffer to the buffer name specified in the options table.
+	vim.api.nvim_buf_set_name(self.bufnr, name or self.name)
 
 	-- Set the buffer type to "nofile" to prevent it from being saved.
-	vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+	vim.api.nvim_buf_set_option(self.bufnr, "buftype", "nofile")
 
 	-- Disable swapfile for the buffer.
-	vim.api.nvim_buf_set_option(buf, "swapfile", false)
+	vim.api.nvim_buf_set_option(self.bufnr, "swapfile", false)
 
 	-- Set the buffer's hidden option to "wipe" to destroy it when it's hidden.
-	vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+	vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "wipe")
 
 	-- Set the buffer's filetype to the filetype specified in the options table.
-	vim.api.nvim_buf_set_option(buf, "filetype", name or self.name)
+	vim.api.nvim_buf_set_option(self.bufnr, "filetype", name or self.name)
 
 	-- Set buffer variables as specified in the options table.
 	for key, value in pairs(self.opts.buf_vars or {}) do
-		vim.api.nvim_buf_set_var(buf, key, value)
+		vim.api.nvim_buf_set_var(self.bufnr, key, value)
 	end
 
 	-- Set the window options as specified in the options table.
@@ -97,7 +116,7 @@ function SimpleView:mount(name)
 
 	-- Set the keymaps for the window as specified in the options table.
 	for keymap, command in pairs(self.opts.keymaps) do
-		vim.api.nvim_buf_set_keymap(buf, "n", keymap, command, { noremap = true })
+		vim.keymap.set("n", keymap, command, { noremap = true, buffer = self.bufnr })
 	end
 end
 
