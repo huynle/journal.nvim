@@ -20,7 +20,7 @@ function Taglinks:lookup(notes, opts)
 	for _, tag in ipairs(tags) do
 		vim.schedule(function()
 			utils.my_zk({
-				tags = { tag },
+				tags = { utils.slugify_tag_word(tag) },
 			}, function(result)
 				self:show_partial(result)
 			end)

@@ -74,7 +74,7 @@ vim.b.undo_ftplugin = (vim.b.undo_ftplugin or "")
 	.. "sil! nunmap <buffer> <M-Return>"
 	.. " | sil! xunmap <buffer> <M-Return>"
 
-vim.b["enable_auto_zk"] = true
+vim.g["enable_auto_zk"] = true
 
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
 	group = vim.api.nvim_create_augroup("auto_zk", {}),
@@ -85,8 +85,8 @@ vim.api.nvim_create_autocmd({ "BufWritePost" }, {
 })
 
 local function toggle_auto_zk()
-	vim.b["enable_auto_zk"] = not vim.b["enable_auto_zk"]
-	vim.print("auto zk: " .. tostring(vim.b["enable_auto_zk"]))
+	vim.g["enable_auto_zk"] = not vim.g["enable_auto_zk"]
+	vim.print("auto zk: " .. tostring(vim.g["enable_auto_zk"]))
 end
 
 -- Add the key mappings only for Markdown files in a zk notebook.

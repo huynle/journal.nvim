@@ -36,7 +36,8 @@ function M.jump_to_tag_definition_page()
 	-- use nvim-telescope as reference
 	async.run(function()
 		local found = rx()
-		vim.cmd("e " .. found.absPath)
+		-- vim.cmd("wincmd L") -- Move to the rightmost window
+		vim.cmd("vsplit " .. found.absPath)
 	end, function()
 		print("finished")
 	end)

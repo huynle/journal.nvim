@@ -14,6 +14,7 @@ function Autoz:init(opts)
 	self.name = "autoz"
 	self.view = nil
 	self.tree = nil
+	self.node = nil
 	self.notes = {}
 end
 
@@ -30,13 +31,24 @@ function Autoz:get_view(opts)
 	return view
 end
 
+function Autoz:make_node(note)
+	local _node = NuiTree.Node({
+		text = note.title,
+		params = note,
+	})
+	return _node
+end
+
 function Autoz:show_partial(notes)
+	local current_node_id = get_node_id(self.node)
 	for _, note in ipairs(notes) do
-		local _node = NuiTree.Node({
-			text = note.title,
-			params = note,
-		})
-		if not self.tree:get_node(get_node_id(_node)) then
+		local _node = self:make_node(note)
+
+		if self.tree:get_node(get_node_id(_node)) then
+			-- dont add the node if it is already in the tree
+		elseif current_node_id == get_node_id(_node) then
+			-- dont add the node if it is the root/current file
+		else
 			self.tree:add_node(_node)
 		end
 	end
@@ -44,17 +56,16 @@ function Autoz:show_partial(notes)
 end
 
 function Autoz:prepare_view_bufffer()
-	if not self.view then
+	if self.view == nil then
 		self.view = self:get_view()
+		vim.api.nvim_buf_set_option(self.view.bufnr, "readonly", false)
+		vim.api.nvim_buf_set_option(self.view.bufnr, "modifiable", true)
+		vim.api.nvim_buf_set_option(self.view.bufnr, "ft", self.name)
+		vim.api.nvim_buf_set_lines(self.view.bufnr, 0, -1, true, {})
+		self:do_keymaps()
 	end
 	-- get a new tree
 	self.tree = self:get_tree()
-	self:do_keymaps()
-
-	vim.api.nvim_buf_set_option(self.view.bufnr, "readonly", false)
-	vim.api.nvim_buf_set_option(self.view.bufnr, "modifiable", true)
-	vim.api.nvim_buf_set_option(self.view.bufnr, "ft", self.name)
-	vim.api.nvim_buf_set_lines(self.view.bufnr, 0, -1, true, {})
 end
 
 function Autoz:show(notes)
@@ -69,10 +80,11 @@ end
 function Autoz:do_keymaps()
 	local keymaps = {
 		{
-			mode = { "n" },
+			mode = { "n", "v" },
 			keys = { "<CR>", "sv" },
 			note = "open note in vertical split",
 			callback = function()
+				local _location = utils.get_lsp_location_from_selection()
 				local node = self.tree:get_node()
 				vim.cmd("wincmd L") -- Move to the rightmost window
 				vim.cmd("vsplit " .. node.params.absPath)
@@ -101,7 +113,7 @@ function Autoz:do_keymaps()
 	}
 
 	for _, keymap in pairs(keymaps) do
-		local _keys = vim.tbl_islist(keymap.keys) and keymap.key or { keymap.key }
+		local _keys = vim.tbl_islist(keymap.keys) and keymap.keys or { keymap.keys }
 		for _, key in ipairs(_keys) do
 			self.view:map(keymap.mode, key, keymap.callback)
 		end
@@ -110,9 +122,13 @@ end
 
 function Autoz:get_note(filepath, opts)
 	filepath = vim.tbl_islist(filepath) and filepath or { filepath }
+
 	utils.my_zk({
 		hrefs = filepath,
 	}, function(result)
+		for _, note in ipairs(result) do
+			self.node = self:make_node(note)
+		end
 		self:lookup(result, opts)
 	end)
 end

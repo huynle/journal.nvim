@@ -17,7 +17,7 @@ vim.api.nvim_create_user_command("AutoZK", function(params)
 end, { nargs = "?", force = true, complete = "lua" })
 
 vim.api.nvim_create_user_command("AutoZ", function(params)
-	if vim.b["enable_auto_zk"] then
+	if vim.g["enable_auto_zk"] then
 		local Backlinks = require("journal.zk.autoz.backlinks")
 		local backlinks = Backlinks.new({})
 
