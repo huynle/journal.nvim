@@ -7,6 +7,7 @@ local defaults = {
 		enter = true,
 		buf_options = {
 			modifiable = true,
+			readonly = false,
 		},
 		win_options = {
 			wrap = true,
@@ -55,6 +56,7 @@ local defaults = {
 		},
 		add_entry = true,
 	},
+	zk = {},
 	keymaps = {
 		close = "<c-c>",
 		previous_entry = "<c-up>",
