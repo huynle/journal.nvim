@@ -1,4 +1,4 @@
-local BaseAutoz = require("journal.zk.autoz.base")
+local BaseAutoz = require("autozk.autoz.base")
 local classes = require("journal.common.classes")
 
 local Backlinks = classes.class(BaseAutoz)

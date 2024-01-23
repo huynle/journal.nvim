@@ -3,7 +3,7 @@ local zk_util = require("zk.util")
 local commands = require("zk.commands")
 local Path = require("plenary.path")
 local util = require("journal.utils")
-local custom = require("journal.zk.custom")
+local custom = require("autozk.custom")
 
 local function makeRelativePath(relative_to, current_path)
 	local r = Path:new(vim.fn.resolve(current_path))

@@ -1,6 +1,6 @@
 -- local util = require("huy.util")
 local util = require("journal.utils")
-local journal_zk = require("journal.zk.helpers")
+local journal_zk = require("autozk.helpers")
 -- local wk = require("which-key")
 -- local bufnr = vim.api.nvim_get_current_buf()
 -- local log = require("huy.util.log")

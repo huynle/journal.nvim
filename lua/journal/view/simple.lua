@@ -18,12 +18,14 @@ function SimpleView:init(visitor, opts)
 			wrap = true,
 			cursorline = true,
 		},
+		enter = false,
 		keymaps = {},
 	}, opts or {})
 	self.opts = opts
 	self.visible = false
+	self.new_win = true
 
-	self.name = opts.buf.filetype
+	self.name = visitor.name or opts.buf.filetype
 	self.bufnr = nil
 end
 
@@ -62,7 +64,15 @@ end
 -- 	return buf, win
 -- end
 
+function SimpleView:unmount()
+	-- local buf, win = self:mount()
+	-- Close the window
+	local force = true
+	vim.api.nvim_win_close(self.winid, force)
+end
+
 function SimpleView:mount(name)
+	name = name or self.name
 	-- Save the handle of the window from which we open the navigation.
 	local start_win = vim.api.nvim_get_current_win()
 
@@ -71,22 +81,43 @@ function SimpleView:mount(name)
 	local buf = vim.g[name]
 
 	-- If the buffer already exists, find the window that displays it and return its handle.
-	if not buf == nil or buf ~= -1 then
+	if buf then
+		local has_win = false
 		for _, win_id in ipairs(vim.api.nvim_list_wins()) do
 			local bufnr = vim.api.nvim_win_get_buf(win_id)
+
 			if bufnr == buf then
+				has_win = true
 				vim.api.nvim_set_current_win(win_id)
-				vim.api.nvim_set_current_win(start_win)
+				if not self.opts.enter then
+					vim.api.nvim_set_current_win(start_win)
+				end
 				self.bufnr = buf
 				self.winid = win_id
 				return buf, win_id
 			end
 		end
+		if not has_win then
+			-- Create a new window
+			vim.cmd("vnew")
+			-- Get the window id of the new window
+			local win_id = vim.api.nvim_get_current_win()
+			-- Set the current buffer for new window
+			vim.api.nvim_win_set_buf(win_id, buf)
+			-- If the option 'enter' is not set, go back to the starting window
+			if not self.opts.enter then
+				vim.api.nvim_set_current_win(start_win)
+			end
+			-- Save the buffer number and window id
+			self.bufnr = buf
+			self.winid = win_id
+			return buf, win_id
+		end
 	end
 
 	-- Open a new vertical window at the far right.
 	-- vim.api.nvim_command("botright " .. "vnew")
-	vim.api.nvim_command("vnew equalalways")
+	vim.api.nvim_command("vnew")
 
 	-- Get the buffer and window handles of the new window.
 	self.bufnr = vim.api.nvim_get_current_buf()
@@ -102,7 +133,7 @@ function SimpleView:mount(name)
 	vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "delete")
 
 	-- Set the buffer's filetype to the filetype specified in the options table.
-	vim.api.nvim_buf_set_option(self.bufnr, "filetype", name or self.name)
+	vim.api.nvim_buf_set_option(self.bufnr, "filetype", name)
 
 	-- -- Set the name of the buffer to the buffer name specified in the options table.
 	-- vim.api.nvim_buf_set_name(self.bufnr, name or self.name)
