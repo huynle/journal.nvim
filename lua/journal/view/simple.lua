@@ -63,6 +63,7 @@ end
 -- end
 
 function SimpleView:mount(name)
+	name = name or self.name
 	-- Save the handle of the window from which we open the navigation.
 	local start_win = vim.api.nvim_get_current_win()
 
@@ -86,7 +87,7 @@ function SimpleView:mount(name)
 
 	-- Open a new vertical window at the far right.
 	-- vim.api.nvim_command("botright " .. "vnew")
-	vim.api.nvim_command("vnew equalalways")
+	vim.api.nvim_command("vnew")
 
 	-- Get the buffer and window handles of the new window.
 	self.bufnr = vim.api.nvim_get_current_buf()
@@ -102,7 +103,7 @@ function SimpleView:mount(name)
 	vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "delete")
 
 	-- Set the buffer's filetype to the filetype specified in the options table.
-	vim.api.nvim_buf_set_option(self.bufnr, "filetype", name or self.name)
+	vim.api.nvim_buf_set_option(self.bufnr, "filetype", name)
 
 	-- -- Set the name of the buffer to the buffer name specified in the options table.
 	-- vim.api.nvim_buf_set_name(self.bufnr, name or self.name)

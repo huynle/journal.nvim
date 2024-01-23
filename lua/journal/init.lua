@@ -4,7 +4,7 @@ local M = {}
 
 M.setup = function(options)
 	config.setup(options)
-	require("journal.zk.builtins")
+	require("autozk.builtins")
 end
 
 M.open_journal_file = function(opts)
