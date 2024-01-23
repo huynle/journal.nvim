@@ -77,47 +77,38 @@ function SimpleView:mount(name)
 	local start_win = vim.api.nvim_get_current_win()
 
 	-- Get the buffer handle.
-	-- local buf = vim.fn.bufnr(name)
-	local buf = vim.g[name]
+	local buf = vim.fn.bufnr(name)
+	if buf ~= -1 and vim.fn.bufexists(buf) then
+	else
+		buf = vim.g[name]
+	end
 
 	-- If the buffer already exists, find the window that displays it and return its handle.
-	if buf then
-		local has_win = false
+	if buf and vim.fn.bufexists(buf) then
 		for _, win_id in ipairs(vim.api.nvim_list_wins()) do
 			local bufnr = vim.api.nvim_win_get_buf(win_id)
-
 			if bufnr == buf then
-				has_win = true
-				vim.api.nvim_set_current_win(win_id)
 				if not self.opts.enter then
 					vim.api.nvim_set_current_win(start_win)
+				else
+					vim.api.nvim_set_current_win(win_id)
 				end
 				self.bufnr = buf
 				self.winid = win_id
 				return buf, win_id
 			end
 		end
-		if not has_win then
-			-- Create a new window
-			vim.cmd("vnew")
-			-- Get the window id of the new window
-			local win_id = vim.api.nvim_get_current_win()
-			-- Set the current buffer for new window
-			vim.api.nvim_win_set_buf(win_id, buf)
-			-- If the option 'enter' is not set, go back to the starting window
-			if not self.opts.enter then
-				vim.api.nvim_set_current_win(start_win)
-			end
-			-- Save the buffer number and window id
-			self.bufnr = buf
-			self.winid = win_id
-			return buf, win_id
-		end
 	end
 
 	-- Open a new vertical window at the far right.
 	-- vim.api.nvim_command("botright " .. "vnew")
-	vim.api.nvim_command("vnew")
+	if vim.fn.filereadable(name) == 1 then
+		vim.api.nvim_command("vnew " .. name)
+	else
+		vim.api.nvim_command("vnew")
+		-- Set the buffer's filetype to the filetype specified in the options table.
+		vim.api.nvim_buf_set_option(self.bufnr, "filetype", self.opts.buf.filetype)
+	end
 
 	-- Get the buffer and window handles of the new window.
 	self.bufnr = vim.api.nvim_get_current_buf()
@@ -131,9 +122,6 @@ function SimpleView:mount(name)
 
 	-- Set the buffer's hidden option to "wipe" to destroy it when it's hidden.
 	vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "delete")
-
-	-- Set the buffer's filetype to the filetype specified in the options table.
-	vim.api.nvim_buf_set_option(self.bufnr, "filetype", name)
 
 	-- -- Set the name of the buffer to the buffer name specified in the options table.
 	-- vim.api.nvim_buf_set_name(self.bufnr, name or self.name)
@@ -151,7 +139,10 @@ function SimpleView:mount(name)
 	for keymap, command in pairs(self.opts.keymaps) do
 		vim.keymap.set("n", keymap, command, { noremap = true, buffer = self.bufnr })
 	end
-	vim.api.nvim_set_current_win(start_win)
+
+	if not self.opts.enter then
+		vim.api.nvim_set_current_win(start_win)
+	end
 	vim.g[name] = self.bufnr
 end
 
