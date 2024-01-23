@@ -15,13 +15,16 @@ function Lookup:init(opts)
 end
 
 function Lookup:load_file(opts)
+	opts = vim.tbl_extend("force", self.opts.journal, opts or {})
 	local filepath = opts.filepath
 	filepath = type(filepath) == "function" and filepath() or filepath
-
-	-- allows us to load any arbitrary file, not just markdown
-	vim.cmd("edit " .. filepath)
-	local _bufnr = vim.api.nvim_get_current_buf()
-	self.view.bufnr = _bufnr
+	self.view:mount(filepath)
+	-- -- allows us to load any arbitrary file, not just markdown
+	-- vim.api.nvim_set_current_win(self.view.winid)
+	-- vim.cmd("edit " .. filepath)
+	-- local _bufnr = vim.api.nvim_get_current_buf()
+	-- self.view.bufnr = _bufnr
+	local _bufnr = self.view.bufnr
 
 	if opts.add_entry then
 		self:add_timed_entry(_bufnr, opts)
@@ -36,9 +39,6 @@ function Lookup:close()
 end
 
 function Lookup:open(journal_opts)
-	journal_opts = vim.tbl_extend("force", self.opts.journal, journal_opts or {})
-	-- self:load_file({ filepath = journal_opts.filepath })
-	self.view:mount()
 	self:load_file(journal_opts)
 
 	util.augroups({
