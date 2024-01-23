@@ -25,7 +25,7 @@ local defaults = {
 		-- },
 		relative = "editor",
 		position = "right",
-		size = "35%",
+		-- size = "35%",
 		focusable = true,
 	},
 	popup_window = {

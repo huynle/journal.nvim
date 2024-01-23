@@ -85,14 +85,15 @@ function SimpleView:mount(name)
 	end
 
 	-- Open a new vertical window at the far right.
-	vim.api.nvim_command("botright " .. "vnew")
+	-- vim.api.nvim_command("botright " .. "vnew")
+	vim.api.nvim_command("vnew equalalways")
 
 	-- Get the buffer and window handles of the new window.
 	self.bufnr = vim.api.nvim_get_current_buf()
 	self.winid = vim.api.nvim_get_current_win()
 
-	-- Set the buffer type to "nofile" to prevent it from being saved.
-	vim.api.nvim_buf_set_option(self.bufnr, "buftype", "nofile")
+	-- -- Set the buffer type to "nofile" to prevent it from being saved.
+	-- vim.api.nvim_buf_set_option(self.bufnr, "buftype", "nofile")
 
 	-- Disable swapfile for the buffer.
 	vim.api.nvim_buf_set_option(self.bufnr, "swapfile", false)

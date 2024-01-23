@@ -74,7 +74,7 @@ vim.b.undo_ftplugin = (vim.b.undo_ftplugin or "")
 	.. "sil! nunmap <buffer> <M-Return>"
 	.. " | sil! xunmap <buffer> <M-Return>"
 
-vim.g["enable_auto_zk"] = true
+vim.g["enable_auto_zk"] = false
 
 vim.api.nvim_create_autocmd({ "BufWritePost" }, {
 	group = vim.api.nvim_create_augroup("auto_zk", {}),
