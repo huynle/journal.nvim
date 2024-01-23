@@ -1,14 +1,17 @@
 local classes = require("journal.common.classes")
 local config = require("journal.config")
 local Split = require("journal.view.split")
+local Simple = require("journal.view.simple")
 local view_utils = require("journal.view.utils")
 local util = require("journal.utils")
 
 local Lookup = classes.class()
 
 function Lookup:init(opts)
+	self.name = "journal"
 	self.opts = vim.tbl_extend("force", config.options, opts or {})
-	self.view = Split(self, opts)
+	-- self.view = Split(self, opts)
+	self.view = Simple.new(self, { enter = true })
 end
 
 function Lookup:load_file(opts)
