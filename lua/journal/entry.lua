@@ -33,7 +33,7 @@ function Lookup:close()
 end
 
 function Lookup:open(journal_opts)
-	journal_opts = vim.tbl_extend("force", self.opts.journal, journal_opts)
+	journal_opts = vim.tbl_extend("force", self.opts.journal, journal_opts or {})
 	-- self:load_file({ filepath = journal_opts.filepath })
 	self.view:mount()
 	self:load_file(journal_opts)

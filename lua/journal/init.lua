@@ -14,7 +14,7 @@ end
 
 M.open_file = function(file_name)
 	local lookup = Entry.new()
-	lookup:open({ filename = file_name })
+	lookup:open({ filepath = vim.fn.expand(file_name) })
 end
 
 return M
