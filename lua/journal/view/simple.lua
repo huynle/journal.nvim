@@ -123,6 +123,9 @@ function SimpleView:mount(name)
 	-- Set the buffer's hidden option to "wipe" to destroy it when it's hidden.
 	vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "delete")
 
+	-- Set so that the cusor does not jump
+	vim.api.nvim_buf_set_option(self.bufnr, "switchbuf", "useopen")
+
 	-- -- Set the name of the buffer to the buffer name specified in the options table.
 	-- vim.api.nvim_buf_set_name(self.bufnr, name or self.name)
 
