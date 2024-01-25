@@ -104,14 +104,15 @@ function SimpleView:mount(name)
 	-- vim.api.nvim_command("botright " .. "vnew")
 	if vim.fn.filereadable(name) == 1 then
 		vim.api.nvim_command("vnew " .. name)
+		self.bufnr = vim.api.nvim_get_current_buf()
 	else
 		vim.api.nvim_command("vnew")
+		self.bufnr = vim.api.nvim_get_current_buf()
 		-- Set the buffer's filetype to the filetype specified in the options table.
 		vim.api.nvim_buf_set_option(self.bufnr, "filetype", self.opts.buf.filetype)
 	end
 
 	-- Get the buffer and window handles of the new window.
-	self.bufnr = vim.api.nvim_get_current_buf()
 	self.winid = vim.api.nvim_get_current_win()
 
 	-- -- Set the buffer type to "nofile" to prevent it from being saved.
@@ -123,8 +124,8 @@ function SimpleView:mount(name)
 	-- Set the buffer's hidden option to "wipe" to destroy it when it's hidden.
 	vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "delete")
 
-	-- Set so that the cusor does not jump
-	vim.api.nvim_buf_set_option(self.bufnr, "switchbuf", "useopen")
+	-- -- Set so that the cusor does not jump
+	-- vim.api.nvim_buf_set_option(self.bufnr, "switchbuf", "useopen")
 
 	-- -- Set the name of the buffer to the buffer name specified in the options table.
 	-- vim.api.nvim_buf_set_name(self.bufnr, name or self.name)

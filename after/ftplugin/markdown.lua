@@ -1,8 +1,8 @@
 -- local util = require("huy.util")
 local util = require("journal.utils")
-local journal_zk = require("autozk.helpers")
+local zk_helpers = require("autozk.helpers")
 -- local wk = require("which-key")
--- local bufnr = vim.api.nvim_get_current_buf()
+local bufnr = vim.api.nvim_get_current_buf()
 -- local log = require("huy.util.log")
 
 -- Set 'iskeyword' specifically for Markdown files
@@ -18,6 +18,9 @@ vim.api.nvim_exec(
 vim.bo.shiftwidth = 2
 -- # dont let line run too long. wrap them
 vim.bo.textwidth = 99
+
+-- -- Set so that the cusor does not jump
+-- vim.api.nvim_buf_set_option(bufnr, "switchbuf", "useopen")
 
 ---- WINDOW local settings
 vim.wo.concealcursor = "c"
@@ -92,11 +95,11 @@ end
 -- Add the key mappings only for Markdown files in a zk notebook.
 if require("zk.util").notebook_root(vim.fn.expand("%:p")) ~= nil then
 	vim.keymap.set("n", "<CR>", function()
-		journal_zk.jump_to_tag_definition_page()
+		zk_helpers.jump_to_tag_definition_page()
 	end, opts)
 
 	vim.keymap.set("v", "<CR>", function()
-		journal_zk.jump_to_tag_definition_page()
+		zk_helpers.jump_to_tag_definition_page()
 	end, opts)
 
 	vim.keymap.set("n", "<leader>uz", function()
