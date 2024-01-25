@@ -11,7 +11,17 @@ function Lookup:init(opts)
 	self.name = "journal"
 	self.opts = vim.tbl_extend("force", config.options, opts or {})
 	-- self.view = Split(self, opts)
-	self.view = Simple.new(self, { enter = true })
+	self.view = Simple.new(self, {
+		enter = true,
+		-- keymaps = {
+		-- 	["<c-up>"] = function()
+		-- 		self:previous_entry()
+		-- 	end,
+		-- 	["<c-down>"] = function()
+		-- 		self:next_entry()
+		-- 	end,
+		-- },
+	})
 end
 
 function Lookup:load_file(opts)

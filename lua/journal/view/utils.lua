@@ -23,12 +23,12 @@ function M.do_keymap(popup, opts)
 
 	-- next journal entry
 	popup:map("n", config.options.keymaps.next_entry, function()
-		popup.entry:next_entry()
+		popup.visitor:next_entry()
 	end)
 
 	-- next previous entry
 	popup:map("n", config.options.keymaps.previous_entry, function()
-		popup.entry:previous_entry()
+		popup.visitor:previous_entry()
 	end)
 end
 return M
