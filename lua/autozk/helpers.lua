@@ -24,20 +24,57 @@ end
 function M.jump_to_tag_definition_page()
 	-- local await_schedule = async.util.scheduler
 
+	local source_path = vim.fn.expand("%:p")
+
 	local line, idx, len, csrow, off = utils.get_interested_item()
 	local params = vim.lsp.util.make_given_range_params()
 
 	local word = vim.fn.strcharpart(line, idx, len)
 	local word_prefix = vim.fn.strcharpart(line, idx - 1, 1)
 
-	local tx, rx = channel.oneshot()
+	-- oneshot
+	local channel_tx, channel_rx = channel.oneshot()
+	-- multiple producer, single consumer
+	-- local channel_tx, channel_rx = channel.mpsc()
 
 	-- learn how to use channels from plenary
 	-- use nvim-telescope as reference
 	async.run(function()
-		local found = rx()
-		-- vim.cmd("wincmd L") -- Move to the rightmost window
-		vim.cmd("vsplit " .. found.absPath)
+		-- oneshot
+		local found = channel_rx()
+
+		-- -- for i = 1, 3 do
+		-- MPSC
+		-- local found = channel_rx.recv()
+		-- vim.print("got .." .. found.absPath)
+		-- vim.print("source path.." .. source_path)
+		-- -- vim.cmd("wincmd L") -- Move to the rightmost window
+		-- if found.absPath ~= source_path then
+		-- 	vim.print("Opening.." .. found.absPath)
+		for _, path in ipairs(found) do
+			vim.cmd("vsplit " .. path)
+		end
+		-- end
+		-- -- end
+
+		-- local timer = vim.loop.new_timer()
+		-- timer:start(
+		-- 	1000,
+		-- 	0,
+		-- 	vim.schedule_wrap(function()
+		-- 		while true do
+		-- 			local found = channel_rx.recv()
+		-- 			vim.print("got .." .. found.absPath)
+		-- 			vim.print("source path.." .. source_path)
+		-- 			-- vim.cmd("wincmd L") -- Move to the rightmost window
+		-- 			if found.absPath ~= source_path then
+		-- 				vim.print("Opening.." .. found.absPath)
+		-- 				vim.cmd("vsplit " .. found.absPath)
+		-- 				-- end
+		-- 			end
+		-- 		end
+		-- 	end)
+		-- )
 	end, function()
 		print("finished")
 	end)
@@ -56,18 +93,32 @@ function M.jump_to_tag_definition_page()
 		}, function(err, notes)
 			vim.print("ZK LOOKING FOR: " .. norm_tag)
 			local exists = false
+			local _found = {}
 			for _, note in ipairs(notes) do
-				if note.metadata and note.metadata.zk and note.metadata.zk == "tag" then
-					if note.title:find(norm_tag) then
-						exists = true
-						tx(note)
-					end
+				-- in order to open the notes, it must have the tag: zk and actually have the normalized tag in its taglist
+				if
+					note.metadata
+					and note.metadata.zk
+					and note.metadata.zk == "tag"
+					and vim.tbl_contains(note.metadata.tags or {}, norm_tag)
+				then
+					-- if note.title:find(norm_tag) then
+					exists = true
+					_found = utils.merge_unique(_found, { note.absPath })
+					-- singleshot
+					-- channel_tx(note)
+					-- mpsc
+					-- end
 				end
 			end
-			if
+
+			if exists then
+				channel_tx(_found)
+			-- channel_tx.send(note)
+			elseif
 				not exists
 				and vim.fn.input({
-						prompt = "Create a new tag file '" .. norm_tag .. "'? [y]/n: ",
+						prompt = "Create a new tag file '" .. word .. "'? [y]/n: ",
 						default = "y",
 					})
 					== "y"
@@ -77,7 +128,7 @@ function M.jump_to_tag_definition_page()
 					-- insertLinkAtLocation = location,
 					dir = vim.fn.expand("%:p:h"),
 					group = "tag",
-					title = norm_tag,
+					title = word,
 					extra = {
 						tag = "[" .. table.concat(_tags, ", ") .. "]",
 					},
