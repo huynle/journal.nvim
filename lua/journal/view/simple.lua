@@ -137,11 +137,13 @@ function SimpleView:mount(name)
 			vim.api.nvim_command("vnew " .. name)
 		end
 		self.bufnr = vim.api.nvim_get_current_buf()
-	else
+	elseif not previous_winid then
 		vim.api.nvim_command("vnew")
 		self.bufnr = vim.api.nvim_get_current_buf()
 		-- Set the buffer's filetype to the filetype specified in the options table.
 		vim.api.nvim_buf_set_option(self.bufnr, "filetype", self.opts.buf.filetype)
+	else
+		self.bufnr = buf
 	end
 
 	-- Get the buffer and window handles of the new window.

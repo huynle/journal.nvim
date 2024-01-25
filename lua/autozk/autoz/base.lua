@@ -55,9 +55,9 @@ function Autoz:show_partial(notes)
 	self.tree:render()
 end
 
-function Autoz:prepare_view_bufffer()
+function Autoz:prepare_view_bufffer(opts)
 	if self.view == nil then
-		self.view = self:get_view()
+		self.view = self:get_view(opts)
 		vim.api.nvim_buf_set_option(self.view.bufnr, "readonly", false)
 		vim.api.nvim_buf_set_option(self.view.bufnr, "modifiable", true)
 		vim.api.nvim_buf_set_option(self.view.bufnr, "ft", self.name)
@@ -69,7 +69,9 @@ function Autoz:prepare_view_bufffer()
 end
 
 function Autoz:show(notes)
-	self:prepare_view_bufffer()
+	self:prepare_view_bufffer({
+		new_win = false,
+	})
 	self:show_partial(notes)
 end
 
