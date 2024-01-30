@@ -8,8 +8,9 @@ function SimpleView:init(visitor, opts)
 	opts = vim.tbl_extend("force", {
 		buf = {
 			swapfile = false,
-			bufhidden = "wipe",
+			bufhidden = "delete",
 			filetype = "zk_huy",
+			buftype = "nofile",
 		},
 		buf_vars = {
 			test = "foo",
@@ -20,10 +21,10 @@ function SimpleView:init(visitor, opts)
 		},
 		enter = false,
 		keymaps = {},
+		visible = false,
+		new_win = false,
 	}, opts or {})
 	self.opts = opts
-	self.visible = false
-	self.new_win = false
 
 	self.name = visitor.name or opts.buf.filetype
 	self.bufnr = nil
@@ -83,32 +84,32 @@ function SimpleView:mount(name)
 	-- buffer is still sitting out there and is valid
 	else
 		-- pull it from vim global
-		buf = vim.g[name]
+		-- buf = vim.g[name]
 	end
 
-	local previous_winid
-	if not self.new_win then
-		previous_winid = self.winid
-	end
+	local previous_winid = vim.fn.bufwinid(buf)
+	-- if not self.new_win then
+	-- 	previous_winid = self.winid
+	-- end
 
-	-- If the buffer already exists, find the window that displays it and return its handle.
-	if buf and vim.fn.bufexists(buf) then
-		for _, win_id in ipairs(vim.api.nvim_list_wins()) do
-			local bufnr = vim.api.nvim_win_get_buf(win_id)
-			if bufnr == buf then
-				-- if not self.opts.enter then
-				-- 	vim.api.nvim_set_current_win(start_win)
-				-- else
-				-- 	vim.api.nvim_set_current_win(win_id)
-				-- end
-				previous_winid = win_id
-				break
-				-- self.bufnr = buf
-				-- self.winid = win_id
-				-- return buf, win_id
-			end
-		end
-	end
+	-- -- If the buffer already exists, find the window that displays it and return its handle.
+	-- if buf and vim.fn.bufexists(buf) then
+	-- 	for _, win_id in ipairs(vim.api.nvim_list_wins()) do
+	-- 		local bufnr = vim.api.nvim_win_get_buf(win_id)
+	-- 		if bufnr == buf then
+	-- 			-- if not self.opts.enter then
+	-- 			-- 	vim.api.nvim_set_current_win(start_win)
+	-- 			-- else
+	-- 			-- 	vim.api.nvim_set_current_win(win_id)
+	-- 			-- end
+	-- 			previous_winid = win_id
+	-- 			break
+	-- 			-- self.bufnr = buf
+	-- 			-- self.winid = win_id
+	-- 			-- return buf, win_id
+	-- 		end
+	-- 	end
+	-- end
 
 	-- -- If the buffer already exists, find the window that displays it and return its handle.
 	-- if buf and vim.fn.bufexists(buf) then
@@ -129,25 +130,27 @@ function SimpleView:mount(name)
 
 	-- Open a new vertical window at the far right.
 	-- vim.api.nvim_command("botright " .. "vnew")
-	if vim.fn.filereadable(name) == 1 then
-		if previous_winid then
-			vim.api.nvim_set_current_win(previous_winid)
-			vim.api.nvim_command("edit " .. name)
-		else
-			vim.api.nvim_command("vnew " .. name)
-		end
-		self.bufnr = vim.api.nvim_get_current_buf()
+	-- if vim.fn.filereadable(name) == 1 then
+	if previous_winid ~= -1 and not self.opts.new_win then
+		vim.api.nvim_set_current_win(previous_winid)
+		vim.api.nvim_command("edit " .. name)
 	else
-		vim.api.nvim_command("vnew")
-		self.bufnr = vim.api.nvim_get_current_buf()
-		-- Set the buffer's filetype to the filetype specified in the options table.
-		vim.api.nvim_buf_set_option(self.bufnr, "filetype", self.opts.buf.filetype)
+		vim.api.nvim_command("vnew " .. name)
 	end
+	self.bufnr = vim.api.nvim_get_current_buf()
+	-- elseif not previous_winid then
+	-- 	vim.api.nvim_command("vnew")
+	-- 	self.bufnr = vim.api.nvim_get_current_buf()
+	-- 	-- Set the buffer's filetype to the filetype specified in the options table.
+	-- 	vim.api.nvim_buf_set_option(self.bufnr, "filetype", self.opts.buf.filetype)
+	-- else
+	-- 	self.bufnr = buf
+	-- end
 
 	-- Get the buffer and window handles of the new window.
 	self.winid = vim.api.nvim_get_current_win()
 
-	-- -- Set the buffer type to "nofile" to prevent it from being saved.
+	-- Set the buffer type to "nofile" to prevent it from being saved.
 	-- vim.api.nvim_buf_set_option(self.bufnr, "buftype", "nofile")
 
 	-- Disable swapfile for the buffer.
