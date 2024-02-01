@@ -1,17 +1,16 @@
-local classes = require("journal.common.classes")
+local Object = require("journal.common.object")
 local config = require("journal.config")
-local Split = require("journal.view.split")
 local Simple = require("journal.view.simple")
 local view_utils = require("journal.view.utils")
 local util = require("journal.utils")
 
-local Lookup = classes.class()
+local Lookup = Object("Lookup")
 
 function Lookup:init(opts)
 	self.name = "journal"
 	self.opts = vim.tbl_extend("force", config.options, opts or {})
 	-- self.view = Split(self, opts)
-	self.view = Simple.new(self, {
+	self.view = Simple(self, {
 		enter = true,
 		-- keymaps = {
 		-- 	["<c-up>"] = function()
@@ -41,7 +40,7 @@ function Lookup:load_file(opts)
 	end
 
 	view_utils.do_keymap(self.view, self.opts)
-	view_utils.set_buf_options(self.view, self.opts)
+	-- view_utils.set_buf_options(self.view, self.opts)
 end
 
 function Lookup:close()
