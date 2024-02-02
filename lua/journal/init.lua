@@ -8,12 +8,12 @@ M.setup = function(options)
 end
 
 M.open_journal_file = function(opts)
-	local lookup = Entry.new(opts)
+	local lookup = Entry(opts)
 	lookup:open(opts)
 end
 
 M.open_file = function(file_name)
-	local lookup = Entry.new()
+	local lookup = Entry()
 	lookup:open({ filepath = vim.fn.expand(file_name) })
 end
 

@@ -1,10 +1,10 @@
 local config = require("journal.config")
 local M = {}
 
-function M.set_buf_options(popup, opts)
-	-- vim.api.nvim_buf_set_option(popup.bufnr, "filetype", "journal")
-	vim.api.nvim_buf_set_var(popup.bufnr, "journal_nvim", true)
-end
+-- function M.set_buf_options(popup, opts)
+-- 	-- vim.api.nvim_buf_set_option(popup.bufnr, "filetype", "journal")
+-- 	vim.api.nvim_buf_set_var(popup.bufnr, "journal_nvim", true)
+-- end
 
 function M.do_keymap(popup, opts)
 	-- close
