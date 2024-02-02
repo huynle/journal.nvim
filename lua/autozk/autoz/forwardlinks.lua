@@ -1,11 +1,10 @@
 local BaseAutoz = require("autozk.autoz.base")
 local utils = require("journal.utils")
-local classes = require("journal.common.classes")
 
-local Forwardlinks = classes.class(BaseAutoz)
+local Forwardlinks = BaseAutoz:extend("Forwardlinks")
 
 function Forwardlinks:init(opts)
-	self.super:init(opts)
+	Forwardlinks.super.init(opts)
 	self.name = "autoz-forwardlinks"
 	self.zk_opts = {
 		select = { "title", "metadata", "absPath" },

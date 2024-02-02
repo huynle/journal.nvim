@@ -19,13 +19,13 @@ end, { nargs = "?", force = true, complete = "lua" })
 vim.api.nvim_create_user_command("AutoZ", function(params)
 	if vim.g["enable_auto_zk"] then
 		local Backlinks = require("autozk.autoz.backlinks")
-		local backlinks = Backlinks.new({})
+		local backlinks = Backlinks({})
 
 		local Forwardlinks = require("autozk.autoz.forwardlinks")
-		local forwardlinks = Forwardlinks.new({})
+		local forwardlinks = Forwardlinks({})
 
 		local Taglinks = require("autozk.autoz.linked_tags")
-		local taglinks = Taglinks.new({})
+		local taglinks = Taglinks({})
 
 		backlinks:run(vim.api.nvim_buf_get_name(0))
 		forwardlinks:run(vim.api.nvim_buf_get_name(0))

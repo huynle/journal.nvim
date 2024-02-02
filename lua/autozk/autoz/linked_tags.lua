@@ -1,11 +1,10 @@
 local BaseAutoz = require("autozk.autoz.base")
 local utils = require("journal.utils")
-local classes = require("journal.common.classes")
 
-local Taglinks = classes.class(BaseAutoz)
+local Taglinks = BaseAutoz:extend("Taglinks")
 
 function Taglinks:init(opts)
-	self.super:init(opts)
+	Taglinks.super.init(opts)
 	self.name = "autoz-link-by-tags"
 	self.zk_opts = {
 		select = { "title", "metadata", "absPath" },

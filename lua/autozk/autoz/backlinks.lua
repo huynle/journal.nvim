@@ -1,10 +1,9 @@
 local BaseAutoz = require("autozk.autoz.base")
-local classes = require("journal.common.classes")
 
-local Backlinks = classes.class(BaseAutoz)
+local Backlinks = BaseAutoz:extend("Backlinks")
 
 function Backlinks:init(opts)
-	self.super:init(opts)
+	Backlinks.super.init(opts)
 	self.name = "autoz-backlinks"
 	self.zk_opts = {
 		select = { "title" },

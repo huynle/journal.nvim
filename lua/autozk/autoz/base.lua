@@ -1,12 +1,12 @@
 local NuiLine = require("nui.line")
 local NuiTree = require("nui.tree")
-local classes = require("journal.common.classes")
 local Split = require("journal.view.split")
 local SimpleView = require("journal.view.simple")
 local config = require("journal.config")
 local utils = require("journal.utils")
 
-local Autoz = classes.class()
+local Object = require("journal.common.object")
+local Autoz = Object("Autoz")
 
 function Autoz:init(opts)
 	opts = vim.tbl_extend("force", config.options, opts or {})
@@ -24,7 +24,7 @@ end
 
 function Autoz:get_view(opts)
 	-- local view = Split(self, self.opts)
-	local view = SimpleView.new(self, opts)
+	local view = SimpleView(self, opts)
 	view:mount(self.name)
 	-- view:mount()
 	-- view:hide()

@@ -2,9 +2,8 @@ local config = require("journal.config")
 local NuiTree = require("nui.tree")
 local NuiLine = require("nui.line")
 local utils = require("journal.utils")
-local classes = require("journal.common.classes")
-
-local Renderer = classes.class()
+local Object = require("journal.common.object")
+local Renderer = Object("Renderer")
 
 function Renderer:init(lookup, view, options)
 	self.opts = options

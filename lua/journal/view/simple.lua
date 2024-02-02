@@ -117,7 +117,7 @@ function SimpleView:mount(name, opts)
 
 	local group = vim.api.nvim_create_augroup(name .. "_augroup", {})
 	for _, event in ipairs(opts.events) do
-		local _copy = utils.shallow_copy(event)
+		local _copy = vim.deepcopy(event)
 		-- local _copy = event
 		local event_names = _copy.events
 		_copy.events = nil
