@@ -12,7 +12,7 @@ function SimpleView:init(name, opts)
 			bufhidden = "delete",
 			syntax = "markdown",
 			filetype = "journal",
-			buftype = "nofile",
+			-- buftype = "nofile",
 		},
 		buf_vars = {},
 		win = {
