@@ -94,11 +94,11 @@ end
 
 -- Add the key mappings only for Markdown files in a zk notebook.
 if require("zk.util").notebook_root(vim.fn.expand("%:p")) ~= nil then
-	vim.keymap.set("n", "<CR>", function()
+	vim.keymap.set("n", "<C-CR>", function()
 		zk_helpers.jump_to_tag_definition_page()
 	end, opts)
 
-	vim.keymap.set("v", "<CR>", function()
+	vim.keymap.set("v", "<C-CR>", function()
 		zk_helpers.jump_to_tag_definition_page()
 	end, opts)
 
