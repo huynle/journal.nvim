@@ -1,7 +1,6 @@
 local Object = require("journal.common.object")
 local config = require("journal.config")
 local Simple = require("journal.view.simple")
-local view_utils = require("journal.view.utils")
 local util = require("journal.utils")
 
 local Lookup = Object("Lookup")
@@ -10,7 +9,7 @@ function Lookup:init(opts)
 	self.name = "journal"
 	self.opts = vim.tbl_extend("force", config.options, opts or {})
 	-- self.view = Split(self, opts)
-	self.view = Simple(self, {
+	self.view = Simple(self.name, {
 		enter = true,
 		-- keymaps = {
 		-- 	["<c-up>"] = function()
@@ -39,8 +38,34 @@ function Lookup:load_file(opts)
 		self:add_timed_entry(_bufnr, opts)
 	end
 
-	view_utils.do_keymap(self.view, self.opts)
+	self:do_keymap()
 	-- view_utils.set_buf_options(self.view, self.opts)
+end
+
+function Lookup:do_keymap()
+	-- close
+	local keys = config.options.keymaps.close
+	if type(keys) ~= "table" then
+		keys = { keys }
+	end
+	for _, key in ipairs(keys) do
+		self.view:map("n", key, function()
+			if self.opts.stop and type(self.opts.stop) == "function" then
+				self.opts.stop()
+			end
+			self.view:unmount()
+		end)
+	end
+
+	-- next journal entry
+	self.view:map("n", config.options.keymaps.next_entry, function()
+		self:next_entry()
+	end)
+
+	-- next previous entry
+	self.view:map("n", config.options.keymaps.previous_entry, function()
+		self:previous_entry()
+	end)
 end
 
 function Lookup:close()
