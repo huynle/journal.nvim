@@ -23,11 +23,7 @@ end
 
 function M.jump_to_tag_definition_page()
 	-- local await_schedule = async.util.scheduler
-
-	local source_path = vim.fn.expand("%:p")
-
 	local line, idx, len, csrow, off = utils.get_interested_item()
-	local params = vim.lsp.util.make_given_range_params()
 
 	local word = vim.fn.strcharpart(line, idx, len)
 	local word_prefix = vim.fn.strcharpart(line, idx - 1, 1)
