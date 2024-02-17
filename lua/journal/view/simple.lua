@@ -63,7 +63,7 @@ end
 
 -- mount can take name or filename
 function SimpleView:mount(name, opts)
-	if self.visible then
+	if self.visible and name == self.name then
 		return
 	end
 	self.visible = true
