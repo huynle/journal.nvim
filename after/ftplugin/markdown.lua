@@ -1,61 +1,10 @@
 -- local util = require("huy.util")
 local util = require("journal.utils")
 local zk_helpers = require("autozk.helpers")
--- local wk = require("which-key")
-local bufnr = vim.api.nvim_get_current_buf()
--- local log = require("huy.util.log")
-
--- Set 'iskeyword' specifically for Markdown files
--- This allows #hastag-to-include-dash
-vim.api.nvim_exec(
-	[[
-  autocmd FileType markdown setlocal iskeyword+=-
-]],
-	false
-)
-
----- BUFFER local settings
-vim.bo.shiftwidth = 2
--- # dont let line run too long. wrap them
-vim.bo.textwidth = 99
-
--- -- Set so that the cusor does not jump
--- vim.api.nvim_buf_set_option(bufnr, "switchbuf", "useopen")
-
----- WINDOW local settings
-vim.wo.concealcursor = "c"
--- spell is set up events.vim, for now.. it should be in this file
-vim.wo.spell = false
-
-util.augroup("huyMarkdown", {
-
-	-- -- " allow all wiki notes to close with C-c
-	-- { "BufRead,BufNewFile", "*/journal/*.md", "nnoremap <buffer><silent> <C-c> :close!<CR>" },
-	-- { "BufRead,BufNewFile", "*/journal/*.md", "nnoremap <buffer><silent> q :close!<CR>" },
-
-	-- switching back and forth between concealing
-	{ "InsertEnter", "*", "setlocal conceallevel=0" },
-	{ "BufEnter,InsertLeave", "*", "setlocal conceallevel=2" },
-
-	-- when leaving a window for markdown, save it
-	-- { "CursorHold", "*", "update" },
-
-	-- " run hugo post maintenance
-	{ "BufWritePre", "*/docs/*.md", "silent! HugoHelperLastmodIsNow" },
-})
-
--- loads BEFORE global plugins, so it might get overridden by ther plugins
-
-vim.g.markdown_lua_loaded = 1
 
 -- util.nnoremap("\\d", "<cmd>put =strftime(\"%Y-%m-%d\")<CR>")
 local function link_surround()
-	-- local mode = vim.fn.mode()
-	-- local bufnr, off, len, line, idx
-	-- local csrow, cscol, cerow, cecol
-
 	local line, idx, len, csrow, off = util.get_interested_item()
-
 	-- Stich selection with link into original line and replace it.
 	local new = vim.fn.strcharpart(line, 0, idx)
 		.. "["
@@ -63,7 +12,7 @@ local function link_surround()
 		.. "]()"
 		.. vim.fn.strcharpart(line, idx + len)
 	vim.fn.setline(csrow, new)
-	vim.fn.setpos(".", { bufnr, csrow, idx + len + 4, off })
+	vim.fn.setpos(".", {0 , csrow, idx + len + 4, off })
 	vim.cmd.startinsert()
 end
 
