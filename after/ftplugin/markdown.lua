@@ -1,10 +1,12 @@
--- local util = require("huy.util")
-local util = require("journal.utils")
+-- If this file does loads with any error or "vim.notify" "press Enter to continue"
+-- message, markdown syntax might not be correct
+
+local utils = require("journal.utils")
 local zk_helpers = require("autozk.helpers")
 
 -- util.nnoremap("\\d", "<cmd>put =strftime(\"%Y-%m-%d\")<CR>")
 local function link_surround()
-	local line, idx, len, csrow, off = util.get_interested_item()
+	local line, idx, len, csrow, off = utils.get_interested_item()
 	-- Stich selection with link into original line and replace it.
 	local new = vim.fn.strcharpart(line, 0, idx)
 		.. "["
@@ -12,7 +14,7 @@ local function link_surround()
 		.. "]()"
 		.. vim.fn.strcharpart(line, idx + len)
 	vim.fn.setline(csrow, new)
-	vim.fn.setpos(".", {0 , csrow, idx + len + 4, off })
+	vim.fn.setpos(".", { 0, csrow, idx + len + 4, off })
 	vim.cmd.startinsert()
 end
 
@@ -42,7 +44,16 @@ local function toggle_auto_zk()
 end
 
 -- Add the key mappings only for Markdown files in a zk notebook.
-if require("zk.util").notebook_root(vim.fn.expand("%:p")) ~= nil then
+local okay, _util = pcall(require, "zk.util")
+if not okay then
+	utils.log("cannot load ZK plugin", vim.log.levels.WARN)
+	return
+end
+
+local file_path = vim.fn.expand("%:p")
+
+if _util.notebook_root(file_path) ~= nil then
+	-- if require("zk.util").notebook_root(vim.fn.expand("%:p")) ~= nil then
 	vim.keymap.set("n", "<C-CR>", function()
 		zk_helpers.jump_to_tag_definition_page()
 	end, opts)
@@ -59,5 +70,5 @@ if require("zk.util").notebook_root(vim.fn.expand("%:p")) ~= nil then
 		vim.cmd("AutoZ")
 	end, opts)
 else
-	util.log("CANNOT load zk for markdown", nil, "ZK")
+	utils.log("ZK notebook not detected for " .. file_path, vim.log.levels.DEBUG)
 end

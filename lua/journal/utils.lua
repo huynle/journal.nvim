@@ -1,5 +1,6 @@
 local api = require("zk.api")
 local config = require("journal.config")
+local Path = require("plenary.path")
 
 local ESC_FEEDKEY = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
 
@@ -403,12 +404,39 @@ function M.trueFileName(file)
 	return file:match("[^/]*.$")
 end
 
-function M.log(msg, hl, name)
-	name = name or "Neovim"
-	hl = hl or "Todo"
-	local debug = vim.env.USER == "huy"
-	if debug then
-		vim.api.nvim_echo({ { name .. ": ", hl }, { msg } }, true, {})
+-- function M.log(msg, hl, name)
+-- 	name = name or "Neovim"
+-- 	hl = hl or "Todo"
+-- 	local debug = vim.env.USER == "huy"
+-- 	if debug then
+-- 		vim.api.nvim_echo({ { name .. ": ", hl }, { msg } }, true, {})
+-- 	end
+-- end
+
+local log_filename =
+	Path:new(vim.fn.stdpath("state")):joinpath("journal", "journal-" .. os.date("%Y-%m-%d") .. ".log"):absolute() -- convert Path object to string
+
+function M.write_to_log(msg)
+	local file = io.open(log_filename, "ab")
+	if file then
+		file:write(os.date("[%Y-%m-%d %H:%M:%S] "))
+		file:write(msg .. "\n")
+		file:close()
+	else
+		vim.notify("Failed to open log file for writing", vim.log.levels.ERROR)
+	end
+end
+
+function M.log(msg, level)
+	level = level or vim.log.levels.INFO
+
+	msg = vim.inspect(msg)
+	if level >= config.options.debug.log_level then
+		M.write_to_log(msg)
+	end
+
+	if level >= config.options.debug.notify_level then
+		vim.notify(msg, level, { title = "Journal.nvim Debug" }, level)
 	end
 end
 

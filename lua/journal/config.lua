@@ -3,6 +3,11 @@ local M = {}
 M.namespace = vim.api.nvim_create_namespace("journal")
 
 local defaults = {
+	debug = {
+		-- if vim.notify is called, and "Press Enter to continue " message popup, markdown file may not load properly
+		log_level = vim.log.levels.DEBUG,
+		notify_level = vim.log.levels.INFO,
+	},
 	view = {
 		enter = true,
 		buf_options = {
