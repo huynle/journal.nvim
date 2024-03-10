@@ -93,9 +93,8 @@ function M.jump_to_tag_definition_page()
 			for _, note in ipairs(notes) do
 				-- in order to open the notes, it must have the tag: zk and actually have the normalized tag in its taglist
 				if
-					note.metadata
-					and note.metadata.zk
-					and note.metadata.zk == "tag"
+					-- only valid if the metadata is tagged with "zk: tag" or "zk: moc", and the tag list contains the normalized
+					(vim.tbl_get(note, "metadata", "zk") == "tag" or vim.tbl_get(note, "metadata", "zk") == "moc")
 					and vim.tbl_contains(note.metadata.tags or {}, norm_tag)
 				then
 					-- if note.title:find(norm_tag) then
