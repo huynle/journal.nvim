@@ -1,6 +1,5 @@
 local NuiLine = require("nui.line")
 local NuiTree = require("nui.tree")
-local Split = require("journal.view.split")
 local SimpleView = require("journal.view.simple")
 local config = require("journal.config")
 local utils = require("journal.utils")
@@ -86,8 +85,9 @@ function Autoz:do_keymaps()
 			keys = { "<CR>", "sv" },
 			note = "open note in vertical split",
 			callback = function()
-				local _location = utils.get_lsp_location_from_selection()
-				local node = self.tree:get_node()
+				local cursor_pos = vim.api.nvim_win_get_cursor(0)
+				local linenr = cursor_pos[1]
+				local node = self.tree:get_node(linenr)
 				vim.cmd("wincmd L") -- Move to the rightmost window
 				vim.cmd("vsplit " .. node.params.absPath)
 			end,
@@ -97,7 +97,9 @@ function Autoz:do_keymaps()
 			keys = { "sg" },
 			note = "open note in horizontal split",
 			callback = function()
-				local node = self.tree:get_node()
+				local cursor_pos = vim.api.nvim_win_get_cursor(0)
+				local linenr = cursor_pos[1]
+				local node = self.tree:get_node(linenr)
 				vim.cmd("wincmd L") -- Move to the rightmost window
 				vim.cmd("split" .. node.params.absPath)
 			end,
@@ -107,7 +109,9 @@ function Autoz:do_keymaps()
 			keys = { "st" },
 			note = "open note in tab",
 			callback = function()
-				local node = self.tree:get_node()
+				local cursor_pos = vim.api.nvim_win_get_cursor(0)
+				local linenr = cursor_pos[1]
+				local node = self.tree:get_node(linenr)
 				vim.cmd("wincmd L") -- Move to the rightmost window
 				vim.cmd("tabedit " .. node.params.absPath)
 			end,
