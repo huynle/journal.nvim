@@ -35,7 +35,8 @@ function Lookup:load_file(opts)
 	local _bufnr = self.view.bufnr
 
 	if opts.add_entry then
-		self:add_timed_entry(_bufnr, opts)
+		self:add_frontmatter()
+		util.add_timed_entry(_bufnr, opts)
 	end
 
 	self:do_keymap()
@@ -114,33 +115,12 @@ function Lookup:previous_entry()
 	})
 end
 
-function Lookup:add_timed_entry(bufnr, journal_opts)
-	-- journal_opts = vim.tbl_extend("force",Lookup:options, journal_opts)
-	self:add_frontmatter()
-
-	local entries = journal_opts.entry_fmt or { "" }
-
-	for _, entry in ipairs(entries) do
-		local fmt_entry = vim.fn.strftime(entry)
-		if not self:check(bufnr, fmt_entry, false) then
-			vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { fmt_entry })
-			-- else
-			-- 	vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, { entry })
-		end
-	end
-	-- get the total new line counts
-	local line_count = vim.api.nvim_buf_line_count(bufnr)
-	-- set the cursor in the window
-	vim.api.nvim_win_set_cursor(self.view.winid, { line_count, 0 })
-	vim.cmd("normal A")
-end
-
 function Lookup:add_frontmatter()
 	local frontmatter_title_str = vim.api.nvim_eval("strftime('title: W%W-%Y')")
 	local frontmatter_date_str = vim.api.nvim_eval("strftime('date: %m/%d/%Y')")
 
-	local check_date = self:check(self.view.bufnr, "date:", true)
-	local check_title = self:check(self.view.bufnr, "title:", true)
+	local check_date = util.check_for_entry(self.view.bufnr, "date:", true)
+	local check_title = util.check_for_entry(self.view.bufnr, "title:", true)
 
 	if not check_title then
 		vim.api.nvim_buf_set_lines(
@@ -176,25 +156,5 @@ end
 -- 		},
 -- 	})
 -- end
-
-function Lookup:check(bufnr, check_str, substring)
-	-- grab everything from first line to the last line
-	-- Indexing is zero-based, end-exclusive. Negative indices are
-	-- interpreted as length+1+index: -1 refers to the index past the
-	-- end. So to get the last element use start=-2 and end=-1.
-	local content = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-	for _, v in ipairs(content) do
-		if substring then
-			if string.find(v, check_str) then
-				return true
-			end
-		else
-			if v == check_str then
-				return true
-			end
-		end
-	end
-	return false
-end
 
 return Lookup
