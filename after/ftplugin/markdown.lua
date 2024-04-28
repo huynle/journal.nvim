@@ -30,13 +30,13 @@ vim.b.undo_ftplugin = (vim.b.undo_ftplugin or "")
 
 vim.g["enable_auto_zk"] = false
 
-vim.api.nvim_create_autocmd({ "BufWritePost" }, {
-	group = vim.api.nvim_create_augroup("auto_zk", {}),
-	pattern = "*/docs/*.md",
-	callback = function()
-		vim.cmd("AutoZ")
-	end,
-})
+-- vim.api.nvim_create_autocmd({ "BufWritePost" }, {
+-- 	group = vim.api.nvim_create_augroup("auto_zk", {}),
+-- 	pattern = "*/docs/*.md",
+-- 	callback = function()
+-- 		vim.cmd("AutoZ")
+-- 	end,
+-- })
 
 local function toggle_auto_zk()
 	vim.g["enable_auto_zk"] = not vim.g["enable_auto_zk"]
@@ -66,9 +66,9 @@ if _util.notebook_root(file_path) ~= nil then
 		toggle_auto_zk()
 	end, opts)
 
-	vim.keymap.set("n", "<leader>zz", function()
-		vim.cmd("AutoZ")
-	end, opts)
+	-- vim.keymap.set("n", "<leader>zz", function()
+	-- 	vim.cmd("AutoZ")
+	-- end, opts)
 else
 	utils.log("ZK notebook not detected for " .. file_path, vim.log.levels.DEBUG)
 end
