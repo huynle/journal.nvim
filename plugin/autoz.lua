@@ -20,6 +20,12 @@ vim.api.nvim_create_user_command("AutoZ", function(params)
 	local Backlinks = require("autozk.autoz.backlinks")
 	local backlinks = Backlinks({})
 
+	local Mentionedby = require("autozk.autoz.mentioned_by")
+	local mentioned_by = Mentionedby({})
+
+	local Mention = require("autozk.autoz.mention")
+	local mention = Mention({})
+
 	local Forwardlinks = require("autozk.autoz.forwardlinks")
 	local forwardlinks = Forwardlinks({})
 
@@ -29,4 +35,6 @@ vim.api.nvim_create_user_command("AutoZ", function(params)
 	backlinks:run(vim.api.nvim_buf_get_name(0))
 	forwardlinks:run(vim.api.nvim_buf_get_name(0))
 	taglinks:run(vim.api.nvim_buf_get_name(0))
+	mentioned_by:run(vim.api.nvim_buf_get_name(0))
+	mention:run(vim.api.nvim_buf_get_name(0))
 end, { nargs = "?", force = true, complete = "lua" })
