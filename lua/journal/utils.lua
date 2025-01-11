@@ -6,6 +6,13 @@ local ESC_FEEDKEY = vim.api.nvim_replace_termcodes("<ESC>", true, false, true)
 
 local M = {}
 
+function M.makeRelativePath(relative_to, current_path)
+	local r = Path:new(vim.fn.resolve(current_path))
+	local p = Path:new(vim.fn.resolve(relative_to))
+	local link = p:make_relative(r .. r._sep)
+	return link
+end
+
 function M.jump_to_item(win, precmd, item)
 	-- requiring here, as otherwise we run into a circular dependency
 	local View = require("journal.view")
@@ -508,11 +515,12 @@ function M.my_zk(options, cb)
 		select = { "title", "tags", "absPath" },
 	}
 	options = options or {}
+	local notebook_location = options.location or os.getenv("ZK_NOTEBOOK_DIR")
 	options.select = M.merge_unique(_defaults.select, options.select or {})
 
 	-- kick it off, and let it run inthe background
 	vim.schedule(function()
-		api.list(os.getenv("ZK_NOTEBOOK_DIR"), options, function(err, res)
+		api.list(notebook_location, options, function(err, res)
 			if not res then
 				error(err)
 			else

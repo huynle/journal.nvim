@@ -69,7 +69,9 @@ local defaults = {
 	},
 }
 
-M.options = {}
+M.options = {
+	location = os.getenv("ZK_NOTEBOOK_DIR"),
+}
 
 function M.setup(options)
 	M.options = vim.tbl_deep_extend("force", {}, defaults, options or {})

@@ -1,18 +1,26 @@
+local class = require("journal.common.class")
 local BaseAutoz = require("autozk.autoz.base")
+local utils = require("journal.utils")
 
-local Backlinks = BaseAutoz:extend("Backlinks")
+local Backlinks = class("Backlinks", BaseAutoz) -- subclassing
 
-function Backlinks:init(opts)
-	Backlinks.super.init(opts)
+function Backlinks:initialize(opts)
+	BaseAutoz.initialize(self, opts) -- invoking the superclass' initializer
 	self.name = "autoz-backlinks"
 	self.zk_opts = {
 		select = { "title" },
-		linkTo = { vim.api.nvim_buf_get_name(0) },
 	}
 end
 
 function Backlinks:lookup(notes, opts)
-	self:show(notes)
+	local abs_paths = utils.get_note_attr(notes, "absPath")
+
+	utils.my_zk({
+		location = self.location,
+		linkTo = abs_paths,
+	}, function(result)
+		self:show(result)
+	end)
 end
 
 return Backlinks

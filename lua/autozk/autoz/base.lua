@@ -4,11 +4,12 @@ local SimpleView = require("journal.view.simple")
 local config = require("journal.config")
 local utils = require("journal.utils")
 
-local Object = require("journal.common.object")
-local Autoz = Object("Autoz")
+local class = require("journal.common.class")
+local Autoz = class("Autoz")
 
-function Autoz:init(opts)
+function Autoz:initialize(opts)
 	opts = vim.tbl_extend("force", config.options, opts or {})
+	self.location = os.getenv("ZK_NOTEBOOK_DIR")
 	self.opts = opts
 	self.name = "autoz"
 	self.view = nil
@@ -128,10 +129,11 @@ end
 
 function Autoz:get_note(filepath, opts)
 	filepath = vim.tbl_islist(filepath) and filepath or { filepath }
-
-	utils.my_zk({
+	local _zk_opts = vim.tbl_extend("force", {
 		hrefs = filepath,
-	}, function(result)
+	}, self.zk_opts, opts or {})
+
+	utils.my_zk(_zk_opts, function(result)
 		for _, note in ipairs(result) do
 			self.node = self:make_node(note)
 		end

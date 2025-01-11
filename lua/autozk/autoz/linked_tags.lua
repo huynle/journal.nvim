@@ -1,14 +1,15 @@
+local class = require("journal.common.class")
 local BaseAutoz = require("autozk.autoz.base")
 local utils = require("journal.utils")
 
-local Taglinks = BaseAutoz:extend("Taglinks")
+local Taglinks = class("Taglinks", BaseAutoz) -- subclassing
 
-function Taglinks:init(opts)
-	Taglinks.super.init(opts)
+function Taglinks:initialize(opts)
+	BaseAutoz.initialize(self, opts) -- invoking the superclass' initializer
 	self.name = "autoz-link-by-tags"
 	self.zk_opts = {
 		select = { "title", "metadata", "absPath" },
-		linkedby = { vim.api.nvim_buf_get_name(0) },
+		-- linkedby = { vim.api.nvim_buf_get_name(0) },
 	}
 end
 
