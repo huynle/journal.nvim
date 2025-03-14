@@ -419,9 +419,27 @@ end
 -- 		vim.api.nvim_echo({ { name .. ": ", hl }, { msg } }, true, {})
 -- 	end
 -- end
+--
+--
+--
+local function ensure_log_file(log_filename)
+	-- Check if the directory exists, create if not
+	local log_dir = Path:new(log_filename):parent()
+	if not log_dir:exists() then
+		log_dir:mkdir({ parents = true })
+	end
+
+	-- Check if the file exists, create if not
+	local log_file = Path:new(log_filename)
+	if not log_file:exists() then
+		vim.fn.writefile({}, log_filename) -- creates an empty file
+	end
+end
 
 local log_filename =
 	Path:new(vim.fn.stdpath("state")):joinpath("journal", "journal-" .. os.date("%Y-%m-%d") .. ".log"):absolute() -- convert Path object to string
+
+ensure_log_file(log_filename)
 
 function M.write_to_log(msg)
 	local file = io.open(log_filename, "ab")
